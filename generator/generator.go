@@ -1,6 +1,10 @@
 package generator
 
-import "io"
+import (
+	"io"
+
+	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+)
 
 type Generator struct {
 	w io.Writer
@@ -14,4 +18,8 @@ func (g *Generator) P(args ...string) {
 	for _, v := range args {
 		io.WriteString(g.w, v)
 	}
+}
+
+func (g *Generator) GenerateAllFiles() *plugin.CodeGeneratorResponse {
+	return nil
 }
