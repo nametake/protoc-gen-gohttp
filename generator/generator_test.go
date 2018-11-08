@@ -19,7 +19,7 @@ func TestGenerator_GenerateAllFiles(t *testing.T) {
 		want   *plugin.CodeGeneratorResponse
 	}{
 		{
-			name: "simple",
+			name: "helloworld",
 			fields: fields{
 				w: nil,
 			},
