@@ -3,7 +3,9 @@ package helloworldpb
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -16,6 +18,7 @@ type Greeter struct{}
 func NewGreeter() *Greeter {
 	return &Greeter{}
 }
+
 func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 	w http.ResponseWriter, r *http.Request,
 	arg, ret proto.Message, err error),
@@ -33,22 +36,22 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		var arg *HelloRequest
 
-		buf, err := ioutil.ReadAll(r.Body)
+		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			cb(ctx, w, r, nil, nil, err)
 			return
 		}
 
+		var arg *HelloRequest
 		switch r.Header.Get("Content-Type") {
 		case "application/protobuf", "application/x-protobuf":
-			if err := proto.Unmarshal(buf, arg); err != nil {
+			if err := proto.Unmarshal(body, arg); err != nil {
 				cb(ctx, w, r, nil, nil, err)
 				return
 			}
 		default:
-			if err := jsonpb.Unmarshal(bytes.NewBuffer(buf), arg); err != nil {
+			if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
 				cb(ctx, w, r, nil, nil, err)
 				return
 			}
@@ -58,6 +61,24 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 		if err != nil {
 			cb(ctx, w, r, arg, ret, err)
 			return
+		}
+
+		switch r.Header.Get("Content-Type") {
+		case "application/protobuf", "application/x-protobuf":
+			buf, err := proto.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+		default:
+			if err := json.NewEncoder(w).Encode(ret); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
 		}
 
 		cb(ctx, w, r, arg, ret, err)
