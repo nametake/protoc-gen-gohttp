@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/gogo/protobuf/jsonpb"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -30,7 +30,7 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 		) {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%v", err)
+				fmt.Fprintf(w, "%v: arg = %v: ret = %v", err, arg, ret)
 			}
 		}
 	}
