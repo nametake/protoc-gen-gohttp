@@ -44,17 +44,24 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 		}
 
 		var arg *HelloRequest
-		switch r.Header.Get("Content-Type") {
+		contentType := r.Header.Get("Content-Type")
+		switch contentType {
 		case "application/protobuf", "application/x-protobuf":
 			if err := proto.Unmarshal(body, arg); err != nil {
 				cb(ctx, w, r, nil, nil, err)
 				return
 			}
-		default:
+		case "application/json":
 			if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
 				cb(ctx, w, r, nil, nil, err)
 				return
 			}
+		default:
+			w.WriteHeader(http.StatusUnsupportedMediaType)
+			if _, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType); err != nil {
+				cb(ctx, w, r, nil, nil, err)
+			}
+			return
 		}
 
 		ret, err := srv.SayHello(ctx, arg)
@@ -63,7 +70,7 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 			return
 		}
 
-		switch r.Header.Get("Content-Type") {
+		switch contentType {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
 			if err != nil {
@@ -74,11 +81,17 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
-		default:
+		case "application/json":
 			if err := json.NewEncoder(w).Encode(ret); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
+		default:
+			w.WriteHeader(http.StatusUnsupportedMediaType)
+			if _, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType); err != nil {
+				cb(ctx, w, r, nil, nil, err)
+			}
+			return
 		}
 
 		cb(ctx, w, r, arg, ret, err)
