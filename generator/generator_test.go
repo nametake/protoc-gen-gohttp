@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -11,24 +12,11 @@ import (
 )
 
 func TestGenerator_GenerateAllFiles(t *testing.T) {
-	type fields struct {
-	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   *plugin.CodeGeneratorResponse
+		name string
 	}{
 		{
-			name:   "helloworld",
-			fields: fields{},
-			want: &plugin.CodeGeneratorResponse{
-				File: []*plugin.CodeGeneratorResponse_File{
-					{
-						Name:    proto.String("foo"),
-						Content: proto.String("bar"),
-					},
-				},
-			},
+			name: "helloworld",
 		},
 	}
 	for _, tt := range tests {
@@ -40,7 +28,22 @@ func TestGenerator_GenerateAllFiles(t *testing.T) {
 			g := &Generator{
 				w: p,
 			}
-			if diff := cmp.Diff(g.GenerateAllFiles(), tt.want); diff != "" {
+
+			content, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.http.go", tt.name))
+			if err != nil {
+				t.Fatalf("failed to read want file: %v", err)
+			}
+
+			want := &plugin.CodeGeneratorResponse{
+				File: []*plugin.CodeGeneratorResponse_File{
+					{
+						Name:    proto.String(fmt.Sprintf("%s.http.go", tt.name)),
+						Content: proto.String(string(content)),
+					},
+				},
+			}
+
+			if diff := cmp.Diff(g.GenerateAllFiles(), want); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})
