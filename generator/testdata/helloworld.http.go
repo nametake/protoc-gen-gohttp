@@ -19,15 +19,9 @@ func NewGreeter() *Greeter {
 	return &Greeter{}
 }
 
-func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
-	w http.ResponseWriter, r *http.Request,
-	arg, ret proto.Message, err error),
-) http.HandlerFunc {
+func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
-		cb = func(ctx context.Context,
-			w http.ResponseWriter, r *http.Request,
-			arg, ret proto.Message, err error,
-		) {
+		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprintf(w, "%v: arg = %v: ret = %v", err, arg, ret)
@@ -44,6 +38,7 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context,
 		}
 
 		var arg *HelloRequest
+
 		contentType := r.Header.Get("Content-Type")
 		switch contentType {
 		case "application/protobuf", "application/x-protobuf":
