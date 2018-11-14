@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ func TestGenerator_GenerateAllFiles(t *testing.T) {
 				t.Fatalf("failed to open proto file: %v", err)
 			}
 			g := &Generator{
-				w: p,
+				output: p,
 			}
 
 			content, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.http.go", tt.name))

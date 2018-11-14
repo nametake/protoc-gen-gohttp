@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	"io"
@@ -7,7 +7,7 @@ import (
 )
 
 type Generator struct {
-	w io.Writer
+	output io.Writer
 }
 
 func New() *Generator {
@@ -16,7 +16,7 @@ func New() *Generator {
 
 func (g *Generator) P(args ...string) {
 	for _, v := range args {
-		io.WriteString(g.w, v)
+		io.WriteString(g.output, v)
 	}
 }
 
