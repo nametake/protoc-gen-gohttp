@@ -20,6 +20,6 @@ func (g *Generator) P(args ...string) {
 	}
 }
 
-func (g *Generator) GenerateAllFiles() *plugin.CodeGeneratorResponse {
-	return nil
+func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+	return nil, nil
 }
