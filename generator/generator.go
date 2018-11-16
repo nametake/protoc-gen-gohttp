@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
@@ -37,9 +38,8 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	}
 
 	for _, f := range req.ProtoFile {
-		pkg := fmt.Sprintf("package %s", f.Options.GetGoPackage())
-
-		g.P(f.GetName(), pkg)
+		g.writePackage(f.GetName(), f)
+		g.writeImports(f.GetName())
 	}
 
 	files := make([]*plugin.CodeGeneratorResponse_File, 0)
@@ -53,6 +53,28 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	return &plugin.CodeGeneratorResponse{
 		File: files,
 	}, nil
+}
+
+func (g *Generator) writePackage(name string, f *descriptor.FileDescriptorProto) {
+	pkg := fmt.Sprintf("package %s", f.Options.GetGoPackage())
+	g.P(name, pkg)
+	g.P(name)
+}
+
+func (g *Generator) writeImports(name string) {
+	g.P(name, "import (")
+	g.P(name, "\t\"bytes\"")
+	g.P(name, "\t\"context\"")
+	g.P(name, "\t\"encoding/json\"")
+	g.P(name, "\t\"fmt\"")
+	g.P(name, "\t\"io\"")
+	g.P(name, "\t\"io/ioutil\"")
+	g.P(name, "\t\"net/http\"")
+	g.P(name, "")
+	g.P(name, "\t\"github.com/golang/protobuf/jsonpb\"")
+	g.P(name, "\t\"github.com/golang/protobuf/proto\"")
+	g.P(name, ")")
+	g.P(name)
 }
 
 func basename(name string) string {
