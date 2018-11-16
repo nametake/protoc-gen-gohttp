@@ -3,6 +3,7 @@ package generator
 import (
 	"io"
 
+	"github.com/gogo/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
@@ -21,5 +22,12 @@ func (g *Generator) P(args ...string) {
 }
 
 func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
-	return nil, nil
+	return &plugin.CodeGeneratorResponse{
+		File: []*plugin.CodeGeneratorResponse_File{
+			{
+				Name:    proto.String("gohttp.go"),
+				Content: proto.String("package gohttp\n"),
+			},
+		},
+	}, nil
 }
