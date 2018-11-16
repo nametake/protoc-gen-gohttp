@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/nametake/protoc-gen-gohttp/generator"
 )
