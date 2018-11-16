@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -49,11 +50,40 @@ func TestGolden(t *testing.T) {
 	}
 
 	// Compare each generated file to the golden version.
-	if err := filepath.Walk(workdir, func(path string, info os.FileInfo, _ error) error {
-		t.Log(path)
+	if err := filepath.Walk(workdir, func(genPath string, info os.FileInfo, _ error) error {
 		if info.IsDir() {
 			return nil
 		}
+
+		relPath, err := filepath.Rel(workdir, genPath)
+		if err != nil {
+			t.Errorf("filepath.Rel(%q, %q): %v", workdir, genPath, err)
+			return nil
+		}
+		if filepath.SplitList(relPath)[0] == ".." {
+			t.Errorf("generated file %q is not relative to %q", genPath, workdir)
+		}
+
+		got, err := ioutil.ReadFile(genPath)
+		if err != nil {
+			t.Error(err)
+			return nil
+		}
+
+		goldenPath := filepath.Join("testdata", relPath)
+		want, err := ioutil.ReadFile(goldenPath)
+		if err != nil {
+			t.Error(err)
+			return nil
+		}
+
+		if bytes.Equal(got, want) {
+			return nil
+		}
+
+		cmd := exec.Command("diff", "-u", goldenPath, genPath)
+		out, _ := cmd.CombinedOutput()
+		t.Errorf("golden file differs: %v\n%v", relPath, string(out))
 		return nil
 	}); err != nil {
 		t.Fatal(err)

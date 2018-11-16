@@ -25,7 +25,7 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	return &plugin.CodeGeneratorResponse{
 		File: []*plugin.CodeGeneratorResponse_File{
 			{
-				Name:    proto.String("gohttp.go"),
+				Name:    proto.String("helloworld.http.go"),
 				Content: proto.String("package gohttp\n"),
 			},
 		},
