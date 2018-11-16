@@ -26,7 +26,7 @@ func TestGolden(t *testing.T) {
 	}
 	defer os.RemoveAll(workdir)
 
-	// find all proto file in testdata.
+	// Find all the proto files in testdata.
 	packages := map[string][]string{}
 	if err := filepath.Walk("testdata", func(path string, info os.FileInfo, err error) error {
 		if !strings.HasSuffix(path, ".proto") {
@@ -35,16 +35,28 @@ func TestGolden(t *testing.T) {
 
 		dir := filepath.Dir(path)
 		packages[dir] = append(packages[dir], path)
+
 		return nil
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	// generate gohttp files.
+	// Compile each package, using this binary as protoc-gen-gohttp.
 	for _, sources := range packages {
 		args := []string{"--gohttp_out=" + workdir}
 		args = append(args, sources...)
 		protoc(t, args)
+	}
+
+	// Compare each generated file to the golden version.
+	if err := filepath.Walk(workdir, func(path string, info os.FileInfo, _ error) error {
+		t.Log(path)
+		if info.IsDir() {
+			return nil
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
 	}
 }
 
