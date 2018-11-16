@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -43,7 +44,7 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 		for _, service := range f.GetService() {
 			g.writeService(f.GetName(), service)
 			for _, method := range service.GetMethod() {
-				g.writeMethod(f.GetName(), method)
+				g.writeMethod(f.GetName(), service, method)
 			}
 		}
 	}
@@ -93,8 +94,8 @@ func (g *Generator) writeService(name string, s *descriptor.ServiceDescriptorPro
 	g.P(name)
 }
 
-func (g *Generator) writeMethod(name string, m *descriptor.MethodDescriptorProto) {
-	g.P(name, "func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {")
+func (g *Generator) writeMethod(name string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
+	g.P(name, fmt.Sprintf("func (g *%s) %s(srv %sServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {", s.GetName(), m.GetName(), s.GetName()))
 	g.P(name, "\tif cb == nil {")
 	g.P(name, "\t\tcb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {")
 	g.P(name, "\t\t\tif err != nil {")
@@ -112,7 +113,7 @@ func (g *Generator) writeMethod(name string, m *descriptor.MethodDescriptorProto
 	g.P(name, "\t\t\treturn")
 	g.P(name, "\t\t}")
 	g.P(name)
-	g.P(name, "\t\tvar arg *HelloRequest")
+	g.P(name, fmt.Sprintf("\t\tvar arg *%s", ioname(m.GetInputType())))
 	g.P(name)
 	g.P(name, "\t\tcontentType := r.Header.Get(\"Content-Type\")")
 	g.P(name, "\t\tswitch contentType {")
@@ -134,7 +135,7 @@ func (g *Generator) writeMethod(name string, m *descriptor.MethodDescriptorProto
 	g.P(name, "\t\t\treturn")
 	g.P(name, "\t\t}")
 	g.P(name)
-	g.P(name, "\t\tret, err := srv.SayHello(ctx, arg)")
+	g.P(name, fmt.Sprintf("\t\tret, err := srv.%s(ctx, arg)", m.GetName()))
 	g.P(name, "\t\tif err != nil {")
 	g.P(name, "\t\t\tcb(ctx, w, r, arg, ret, err)")
 	g.P(name, "\t\t\treturn")
@@ -174,4 +175,9 @@ func basename(name string) string {
 		name = name[:len(name)-len(ext)]
 	}
 	return name
+}
+
+func ioname(name string) string {
+	s := strings.Split(name, ".")
+	return s[len(s)-1]
 }
