@@ -7,7 +7,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/nametake/protoc-gen-gohttp/generator"
 )
 
 func main() {
@@ -27,7 +26,7 @@ func run() error {
 		return err
 	}
 
-	gen := generator.New()
+	gen := New()
 	resp, err := gen.Generate(&req)
 	if err != nil {
 		return err
