@@ -12,45 +12,44 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
-type Generator struct {
-	files map[string]*bytes.Buffer
-}
+type Generator struct{}
 
 func New() *Generator {
-	return &Generator{
-		files: make(map[string]*bytes.Buffer),
-	}
+	return &Generator{}
 }
 
-func (g Generator) P(name string, args ...string) {
-	for _, arg := range args {
-		if _, err := io.WriteString(g.files[name], arg); err != nil {
-			panic(err)
-		}
+func p(w io.Writer, format string, args ...interface{}) {
+	if w == nil {
+		return
 	}
-	if _, err := io.WriteString(g.files[name], "\n"); err != nil {
+	if _, err := fmt.Fprintf(w, format, args...); err != nil {
+		panic(err)
+	}
+	if _, err := fmt.Fprintln(w); err != nil {
 		panic(err)
 	}
 }
 
 func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+	bufs := make(map[string]*bytes.Buffer)
 	for _, f := range req.FileToGenerate {
-		g.files[f] = &bytes.Buffer{}
+		bufs[f] = &bytes.Buffer{}
 	}
 
 	for _, f := range req.ProtoFile {
-		g.writePackage(f.GetName(), f)
-		g.writeImports(f.GetName())
+		buf := bufs[f.GetName()]
+		g.writePackage(buf, f)
+		g.writeImports(buf)
 		for _, service := range f.GetService() {
-			g.writeService(f.GetName(), service)
+			g.writeService(buf, service)
 			for _, method := range service.GetMethod() {
-				g.writeMethod(f.GetName(), service, method)
+				g.writeMethod(buf, service, method)
 			}
 		}
 	}
 
 	files := make([]*plugin.CodeGeneratorResponse_File, 0)
-	for name, buf := range g.files {
+	for name, buf := range bufs {
 		file := &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(basename(name) + ".http.go"),
 			Content: proto.String(buf.String()),
@@ -62,112 +61,111 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	}, nil
 }
 
-func (g *Generator) writePackage(name string, f *descriptor.FileDescriptorProto) {
-	pkg := fmt.Sprintf("package %s", f.Options.GetGoPackage())
-	g.P(name, pkg)
-	g.P(name)
+func (g *Generator) writePackage(w io.Writer, f *descriptor.FileDescriptorProto) {
+	p(w, "package %s", f.Options.GetGoPackage())
+	p(w, "")
 }
 
-func (g *Generator) writeImports(name string) {
-	g.P(name, "import (")
-	g.P(name, "	\"bytes\"")
-	g.P(name, "	\"context\"")
-	g.P(name, "	\"encoding/json\"")
-	g.P(name, "	\"fmt\"")
-	g.P(name, "	\"io\"")
-	g.P(name, "	\"io/ioutil\"")
-	g.P(name, "	\"net/http\"")
-	g.P(name, "")
-	g.P(name, "	\"github.com/golang/protobuf/jsonpb\"")
-	g.P(name, "	\"github.com/golang/protobuf/proto\"")
-	g.P(name, ")")
-	g.P(name)
+func (g *Generator) writeImports(w io.Writer) {
+	p(w, "import (")
+	p(w, "	\"bytes\"")
+	p(w, "	\"context\"")
+	p(w, "	\"encoding/json\"")
+	p(w, "	\"fmt\"")
+	p(w, "	\"io\"")
+	p(w, "	\"io/ioutil\"")
+	p(w, "	\"net/http\"")
+	p(w, "")
+	p(w, "	\"github.com/golang/protobuf/jsonpb\"")
+	p(w, "	\"github.com/golang/protobuf/proto\"")
+	p(w, ")")
+	p(w, "")
 }
 
-func (g *Generator) writeService(name string, s *descriptor.ServiceDescriptorProto) {
-	g.P(name, fmt.Sprintf("type %s struct{}", s.GetName()))
-	g.P(name)
+func (g *Generator) writeService(w io.Writer, s *descriptor.ServiceDescriptorProto) {
+	p(w, "type %s struct{}", s.GetName())
+	p(w, "")
 
-	g.P(name, fmt.Sprintf("func New%s() *%s {", s.GetName(), s.GetName()))
-	g.P(name, fmt.Sprintf("	return &%s{}", s.GetName()))
-	g.P(name, "}")
+	p(w, "func New%s() *%s {", s.GetName(), s.GetName())
+	p(w, "	return &%s{}", s.GetName())
+	p(w, "}")
 }
 
-func (g *Generator) writeMethod(name string, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
-	g.P(name)
-	g.P(name, fmt.Sprintf("func (g *%s) %s(srv %sServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {", s.GetName(), m.GetName(), s.GetName()))
-	g.P(name, "	if cb == nil {")
-	g.P(name, "		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {")
-	g.P(name, "			if err != nil {")
-	g.P(name, "				w.WriteHeader(http.StatusInternalServerError)")
-	g.P(name, "				fmt.Fprintf(w, \"%v: arg = %v: ret = %v\", err, arg, ret)")
-	g.P(name, "			}")
-	g.P(name, "		}")
-	g.P(name, "	}")
-	g.P(name, "	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {")
-	g.P(name, "		ctx := r.Context()")
-	g.P(name)
-	g.P(name, "		body, err := ioutil.ReadAll(r.Body)")
-	g.P(name, "		if err != nil {")
-	g.P(name, "			cb(ctx, w, r, nil, nil, err)")
-	g.P(name, "			return")
-	g.P(name, "		}")
-	g.P(name)
-	g.P(name, fmt.Sprintf("		var arg *%s", ioname(m.GetInputType())))
-	g.P(name)
-	g.P(name, "		contentType := r.Header.Get(\"Content-Type\")")
-	g.P(name, "		switch contentType {")
-	g.P(name, "		case \"application/protobuf\", \"application/x-protobuf\":")
-	g.P(name, "			if err := proto.Unmarshal(body, arg); err != nil {")
-	g.P(name, "				cb(ctx, w, r, nil, nil, err)")
-	g.P(name, "				return")
-	g.P(name, "			}")
-	g.P(name, "		case \"application/json\":")
-	g.P(name, "			if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {")
-	g.P(name, "				cb(ctx, w, r, nil, nil, err)")
-	g.P(name, "				return")
-	g.P(name, "			}")
-	g.P(name, "		default:")
-	g.P(name, "			w.WriteHeader(http.StatusUnsupportedMediaType)")
-	g.P(name, "			if _, err := fmt.Fprintf(w, \"Unsupported Content-Type: %s\", contentType); err != nil {")
-	g.P(name, "				cb(ctx, w, r, nil, nil, err)")
-	g.P(name, "			}")
-	g.P(name, "			return")
-	g.P(name, "		}")
-	g.P(name)
-	g.P(name, fmt.Sprintf("		ret, err := srv.%s(ctx, arg)", m.GetName()))
-	g.P(name, "		if err != nil {")
-	g.P(name, "			cb(ctx, w, r, arg, ret, err)")
-	g.P(name, "			return")
-	g.P(name, "		}")
-	g.P(name)
-	g.P(name, "		switch contentType {")
-	g.P(name, "		case \"application/protobuf\", \"application/x-protobuf\":")
-	g.P(name, "			buf, err := proto.Marshal(ret)")
-	g.P(name, "			if err != nil {")
-	g.P(name, "				cb(ctx, w, r, arg, ret, err)")
-	g.P(name, "				return")
-	g.P(name, "			}")
-	g.P(name, "			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {")
-	g.P(name, "				cb(ctx, w, r, arg, ret, err)")
-	g.P(name, "				return")
-	g.P(name, "			}")
-	g.P(name, "		case \"application/json\":")
-	g.P(name, "			if err := json.NewEncoder(w).Encode(ret); err != nil {")
-	g.P(name, "				cb(ctx, w, r, arg, ret, err)")
-	g.P(name, "				return")
-	g.P(name, "			}")
-	g.P(name, "		default:")
-	g.P(name, "			w.WriteHeader(http.StatusUnsupportedMediaType)")
-	g.P(name, "			if _, err := fmt.Fprintf(w, \"Unsupported Content-Type: %s\", contentType); err != nil {")
-	g.P(name, "				cb(ctx, w, r, nil, nil, err)")
-	g.P(name, "			}")
-	g.P(name, "			return")
-	g.P(name, "		}")
-	g.P(name)
-	g.P(name, "		cb(ctx, w, r, arg, ret, err)")
-	g.P(name, "	})")
-	g.P(name, "}")
+func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
+	p(w, "")
+	p(w, "func (g *%s) %s(srv %sServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {", s.GetName(), m.GetName(), s.GetName())
+	p(w, "	if cb == nil {")
+	p(w, "		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {")
+	p(w, "			if err != nil {")
+	p(w, "				w.WriteHeader(http.StatusInternalServerError)")
+	p(w, "				fmt.Fprintf(w, \"%%v: arg = %%v: ret = %%v\", err, arg, ret)")
+	p(w, "			}")
+	p(w, "		}")
+	p(w, "	}")
+	p(w, "	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {")
+	p(w, "		ctx := r.Context()")
+	p(w, "")
+	p(w, "		body, err := ioutil.ReadAll(r.Body)")
+	p(w, "		if err != nil {")
+	p(w, "			cb(ctx, w, r, nil, nil, err)")
+	p(w, "			return")
+	p(w, "		}")
+	p(w, "")
+	p(w, "		var arg *%s", ioname(m.GetInputType()))
+	p(w, "")
+	p(w, "		contentType := r.Header.Get(\"Content-Type\")")
+	p(w, "		switch contentType {")
+	p(w, "		case \"application/protobuf\", \"application/x-protobuf\":")
+	p(w, "			if err := proto.Unmarshal(body, arg); err != nil {")
+	p(w, "				cb(ctx, w, r, nil, nil, err)")
+	p(w, "				return")
+	p(w, "			}")
+	p(w, "		case \"application/json\":")
+	p(w, "			if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {")
+	p(w, "				cb(ctx, w, r, nil, nil, err)")
+	p(w, "				return")
+	p(w, "			}")
+	p(w, "		default:")
+	p(w, "			w.WriteHeader(http.StatusUnsupportedMediaType)")
+	p(w, "			if _, err := fmt.Fprintf(w, \"Unsupported Content-Type: %%s\", contentType); err != nil {")
+	p(w, "				cb(ctx, w, r, nil, nil, err)")
+	p(w, "			}")
+	p(w, "			return")
+	p(w, "		}")
+	p(w, "")
+	p(w, "		ret, err := srv.%s(ctx, arg)", m.GetName())
+	p(w, "		if err != nil {")
+	p(w, "			cb(ctx, w, r, arg, ret, err)")
+	p(w, "			return")
+	p(w, "		}")
+	p(w, "")
+	p(w, "		switch contentType {")
+	p(w, "		case \"application/protobuf\", \"application/x-protobuf\":")
+	p(w, "			buf, err := proto.Marshal(ret)")
+	p(w, "			if err != nil {")
+	p(w, "				cb(ctx, w, r, arg, ret, err)")
+	p(w, "				return")
+	p(w, "			}")
+	p(w, "			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {")
+	p(w, "				cb(ctx, w, r, arg, ret, err)")
+	p(w, "				return")
+	p(w, "			}")
+	p(w, "		case \"application/json\":")
+	p(w, "			if err := json.NewEncoder(w).Encode(ret); err != nil {")
+	p(w, "				cb(ctx, w, r, arg, ret, err)")
+	p(w, "				return")
+	p(w, "			}")
+	p(w, "		default:")
+	p(w, "			w.WriteHeader(http.StatusUnsupportedMediaType)")
+	p(w, "			if _, err := fmt.Fprintf(w, \"Unsupported Content-Type: %%s\", contentType); err != nil {")
+	p(w, "				cb(ctx, w, r, nil, nil, err)")
+	p(w, "			}")
+	p(w, "			return")
+	p(w, "		}")
+	p(w, "")
+	p(w, "		cb(ctx, w, r, arg, ret, err)")
+	p(w, "	})")
+	p(w, "}")
 }
 
 func basename(name string) string {
