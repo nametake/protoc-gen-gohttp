@@ -26,11 +26,7 @@ func run() error {
 		return err
 	}
 
-	gen := New()
-	resp, err := gen.Generate(&req)
-	if err != nil {
-		return err
-	}
+	resp := New().Generate(&req)
 
 	out, err := proto.Marshal(resp)
 	if err != nil {

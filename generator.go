@@ -30,7 +30,7 @@ func p(w io.Writer, format string, args ...interface{}) {
 	}
 }
 
-func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse {
 	bufs := make(map[string]*bytes.Buffer)
 	for _, f := range req.FileToGenerate {
 		bufs[f] = &bytes.Buffer{}
@@ -58,7 +58,7 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	}
 	return &plugin.CodeGeneratorResponse{
 		File: files,
-	}, nil
+	}
 }
 
 func (g *Generator) writePackage(w io.Writer, f *descriptor.FileDescriptorProto) {
