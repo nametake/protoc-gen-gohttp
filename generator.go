@@ -89,17 +89,20 @@ func (g *Generator) writeImports(w io.Writer) {
 }
 
 func (g *Generator) writeService(w io.Writer, s *descriptor.ServiceDescriptorProto) {
-	p(w, "type %s struct{}", s.GetName())
+	p(w, "type %sHandler struct{", s.GetName())
+	p(w, "	srv %sServer", s.GetName())
+	p(w, "}")
 	p(w, "")
-
-	p(w, "func New%s() *%s {", s.GetName(), s.GetName())
-	p(w, "	return &%s{}", s.GetName())
+	p(w, "func New%sHandler(srv %sServer) *%sHandler {", s.GetName(), s.GetName(), s.GetName())
+	p(w, "	return &%sHandler{", s.GetName())
+	p(w, "		srv: srv,")
+	p(w, "	}")
 	p(w, "}")
 	p(w, "")
 }
 
 func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
-	p(w, "func (g *%s) %s(srv %sServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {", s.GetName(), m.GetName(), s.GetName())
+	p(w, "func (h *%sHandler) %s(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {", s.GetName(), m.GetName())
 	p(w, "	if cb == nil {")
 	p(w, "		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {")
 	p(w, "			if err != nil {")
@@ -139,7 +142,7 @@ func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProt
 	p(w, "			return")
 	p(w, "		}")
 	p(w, "")
-	p(w, "		ret, err := srv.%s(ctx, arg)", m.GetName())
+	p(w, "		ret, err := h.srv.%s(ctx, arg)", m.GetName())
 	p(w, "		if err != nil {")
 	p(w, "			cb(ctx, w, r, arg, ret, err)")
 	p(w, "			return")

@@ -13,13 +13,17 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-type Greeter struct{}
-
-func NewGreeter() *Greeter {
-	return &Greeter{}
+type GreeterHandler struct {
+	srv GreeterServer
 }
 
-func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func NewGreeterHandler(srv GreeterServer) *GreeterHandler {
+	return &GreeterHandler{
+		srv: srv,
+	}
+}
+
+func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -59,7 +63,7 @@ func (g *Greeter) SayHello(srv GreeterServer, cb func(ctx context.Context, w htt
 			return
 		}
 
-		ret, err := srv.SayHello(ctx, arg)
+		ret, err := h.srv.SayHello(ctx, arg)
 		if err != nil {
 			cb(ctx, w, r, arg, ret, err)
 			return
