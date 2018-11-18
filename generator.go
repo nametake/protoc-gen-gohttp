@@ -32,39 +32,52 @@ func p(w io.Writer, format string, args ...interface{}) {
 }
 
 func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
-	bufs := make(map[string]*bytes.Buffer)
-	for _, f := range req.FileToGenerate {
-		bufs[f] = &bytes.Buffer{}
-	}
-
-	for _, f := range req.ProtoFile {
-		buf := bufs[f.GetName()]
-		g.writePackage(buf, f)
-		g.writeImports(buf)
-		for _, service := range f.GetService() {
-			g.writeService(buf, service)
-			for _, method := range service.GetMethod() {
-				g.writeMethod(buf, service, method)
-			}
+	// Filter files with Service.
+	filterdFiles := make([]*descriptor.FileDescriptorProto, 0)
+	for _, f := range req.GetProtoFile() {
+		if len(f.GetService()) == 0 {
+			continue
 		}
+		filterdFiles = append(filterdFiles, f)
 	}
 
-	files := make([]*plugin.CodeGeneratorResponse_File, 0)
-	for name, buf := range bufs {
-		content, err := format.Source(buf.Bytes())
+	// Generate response files from proto files.
+	respFiles := make([]*plugin.CodeGeneratorResponse_File, 0)
+	for _, f := range filterdFiles {
+		respFiles = append(respFiles, g.genRespFile(f))
+	}
+
+	// Format response files content.
+	for _, f := range respFiles {
+		content, err := format.Source([]byte(f.GetContent()))
 		if err != nil {
 			return nil, err
 		}
-
-		file := &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(basename(name) + ".http.go"),
-			Content: proto.String(string(content)),
-		}
-		files = append(files, file)
+		f.Content = proto.String(string(content))
 	}
+
 	return &plugin.CodeGeneratorResponse{
-		File: files,
+		File: respFiles,
 	}, nil
+}
+
+func (g *Generator) genRespFile(file *descriptor.FileDescriptorProto) *plugin.CodeGeneratorResponse_File {
+	buf := &bytes.Buffer{}
+	g.writePackage(buf, file)
+	g.writeImports(buf)
+	for _, service := range file.GetService() {
+		g.writeService(buf, service)
+		for _, method := range service.GetMethod() {
+			if method.GetServerStreaming() {
+				continue
+			}
+			g.writeMethod(buf, service, method)
+		}
+	}
+	return &plugin.CodeGeneratorResponse_File{
+		Name:    proto.String(basename(file.GetName()) + ".http.go"),
+		Content: proto.String(buf.String()),
+	}
 }
 
 func (g *Generator) writePackage(w io.Writer, f *descriptor.FileDescriptorProto) {
