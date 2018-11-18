@@ -33,39 +33,37 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 		}
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+		var (
+			ctx = r.Context()
+			arg *HelloRequest
+			ret *HelloReply
+			err error
+		)
+		defer cb(ctx, w, r, arg, ret, err)
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			cb(ctx, w, r, nil, nil, err)
 			return
 		}
-
-		var arg *HelloRequest
 
 		contentType := r.Header.Get("Content-Type")
 		switch contentType {
 		case "application/protobuf", "application/x-protobuf":
-			if err := proto.Unmarshal(body, arg); err != nil {
-				cb(ctx, w, r, nil, nil, err)
+			if err = proto.Unmarshal(body, arg); err != nil {
 				return
 			}
 		case "application/json":
-			if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
-				cb(ctx, w, r, nil, nil, err)
+			if err = jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
 				return
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			if _, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType); err != nil {
-				cb(ctx, w, r, nil, nil, err)
-			}
+			_, err = fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 			return
 		}
 
-		ret, err := h.srv.SayHello(ctx, arg)
+		ret, err = h.srv.SayHello(ctx, arg)
 		if err != nil {
-			cb(ctx, w, r, arg, ret, err)
 			return
 		}
 
@@ -73,26 +71,19 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
 			if err != nil {
-				cb(ctx, w, r, arg, ret, err)
 				return
 			}
-			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
-				cb(ctx, w, r, arg, ret, err)
+			if _, err = io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				return
 			}
 		case "application/json":
-			if err := json.NewEncoder(w).Encode(ret); err != nil {
-				cb(ctx, w, r, arg, ret, err)
+			if err = json.NewEncoder(w).Encode(ret); err != nil {
 				return
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			if _, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType); err != nil {
-				cb(ctx, w, r, nil, nil, err)
-			}
+			_, err = fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 			return
 		}
-
-		cb(ctx, w, r, arg, ret, err)
 	})
 }
