@@ -26,7 +26,10 @@ func run() error {
 		return err
 	}
 
-	resp := New().Generate(&req)
+	resp, err := New().Generate(&req)
+	if err != nil {
+		return err
+	}
 
 	out, err := proto.Marshal(resp)
 	if err != nil {

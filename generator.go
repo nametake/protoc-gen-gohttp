@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"go/format"
 	"io"
 	"path"
 	"strings"
@@ -30,7 +31,7 @@ func p(w io.Writer, format string, args ...interface{}) {
 	}
 }
 
-func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse {
+func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	bufs := make(map[string]*bytes.Buffer)
 	for _, f := range req.FileToGenerate {
 		bufs[f] = &bytes.Buffer{}
@@ -50,15 +51,20 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) *plugin.CodeGener
 
 	files := make([]*plugin.CodeGeneratorResponse_File, 0)
 	for name, buf := range bufs {
+		content, err := format.Source(buf.Bytes())
+		if err != nil {
+			return nil, err
+		}
+
 		file := &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(basename(name) + ".http.go"),
-			Content: proto.String(buf.String()),
+			Content: proto.String(string(content)),
 		}
 		files = append(files, file)
 	}
 	return &plugin.CodeGeneratorResponse{
 		File: files,
-	}
+	}, nil
 }
 
 func (g *Generator) writePackage(w io.Writer, f *descriptor.FileDescriptorProto) {
@@ -89,10 +95,10 @@ func (g *Generator) writeService(w io.Writer, s *descriptor.ServiceDescriptorPro
 	p(w, "func New%s() *%s {", s.GetName(), s.GetName())
 	p(w, "	return &%s{}", s.GetName())
 	p(w, "}")
+	p(w, "")
 }
 
 func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
-	p(w, "")
 	p(w, "func (g *%s) %s(srv %sServer, cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {", s.GetName(), m.GetName(), s.GetName())
 	p(w, "	if cb == nil {")
 	p(w, "		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {")
@@ -166,6 +172,7 @@ func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProt
 	p(w, "		cb(ctx, w, r, arg, ret, err)")
 	p(w, "	})")
 	p(w, "}")
+	p(w, "")
 }
 
 func basename(name string) string {
