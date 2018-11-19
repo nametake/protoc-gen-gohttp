@@ -33,8 +33,6 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 					return nil, err
 				}
 
-				t.Log(body.String())
-
 				req := httptest.NewRequest(http.MethodPost, "/", body)
 				req.Header.Set("Content-Type", "application/json")
 				return req, nil
@@ -43,6 +41,29 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 			wantErr: false,
 			want: &HelloReply{
 				Message: "Hello, John!",
+			},
+		},
+		{
+			name: "Content-Type Protobuf",
+			reqFunc: func() (*http.Request, error) {
+				p := &HelloRequest{
+					Name: "Smith",
+				}
+
+				buf, err := proto.Marshal(p)
+				if err != nil {
+					return nil, err
+				}
+				body := bytes.NewBuffer(buf)
+
+				req := httptest.NewRequest(http.MethodPost, "/", body)
+				req.Header.Set("Content-Type", "application/protobuf")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &HelloReply{
+				Message: "Hello, Smith!",
 			},
 		},
 	}
