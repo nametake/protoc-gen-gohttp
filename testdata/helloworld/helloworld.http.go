@@ -75,12 +75,12 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
-			if _, err = io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
 		case "application/json":
-			if err = json.NewEncoder(w).Encode(ret); err != nil {
+			if err := json.NewEncoder(w).Encode(ret); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
