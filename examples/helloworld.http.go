@@ -35,25 +35,28 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx = r.Context()
-			arg = &HelloRequest{}
+			arg *HelloRequest
 			ret *HelloReply
 			err error
 		)
-		defer cb(ctx, w, r, arg, ret, err)
+		defer func() {
+			cb(ctx, w, r, arg, ret, err)
+		}()
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return
 		}
 
+		tmp := &HelloRequest{}
 		contentType := r.Header.Get("Content-Type")
 		switch contentType {
 		case "application/protobuf", "application/x-protobuf":
-			if err = proto.Unmarshal(body, arg); err != nil {
+			if err = proto.Unmarshal(body, tmp); err != nil {
 				return
 			}
 		case "application/json":
-			if err = jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+			if err = jsonpb.Unmarshal(bytes.NewBuffer(body), tmp); err != nil {
 				return
 			}
 		default:
@@ -61,6 +64,7 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 			_, err = fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 			return
 		}
+		arg = tmp
 
 		ret, err = h.srv.SayHello(ctx, arg)
 		if err != nil {

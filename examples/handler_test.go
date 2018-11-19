@@ -17,6 +17,7 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 		name    string
 		reqFunc func() (*http.Request, error)
 		cb      func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
+		wantErr bool
 		want    *HelloReply
 	}{
 		{
@@ -35,7 +36,8 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 				req.Header.Set("Content-Type", "application/json")
 				return req, nil
 			},
-			cb: nil,
+			cb:      nil,
+			wantErr: false,
 			want: &HelloReply{
 				Message: "Hello, John!",
 			},
@@ -57,10 +59,32 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 				req.Header.Set("Content-Type", "application/protobuf")
 				return req, nil
 			},
-			cb: nil,
+			cb:      nil,
+			wantErr: false,
 			want: &HelloReply{
 				Message: "Hello, Smith!",
 			},
+		},
+		{
+			name: "Nil body JSON",
+			reqFunc: func() (*http.Request, error) {
+				req := httptest.NewRequest(http.MethodPost, "/", nil)
+				req.Header.Set("Content-Type", "application/json")
+				return req, nil
+			},
+			cb: func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
+				if arg != nil {
+					t.Errorf("arg is not nil: %#v", arg)
+				}
+				if ret != nil {
+					t.Errorf("ret is not nil: %#v", ret)
+				}
+				if err == nil {
+					t.Errorf("want error: %v", err)
+				}
+			},
+			wantErr: true,
+			want:    nil,
 		},
 	}
 
@@ -76,6 +100,10 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 			handler.SayHello(tt.cb).ServeHTTP(rec, req)
+
+			if tt.wantErr {
+				return
+			}
 
 			resp := &HelloReply{}
 			switch req.Header.Get("Content-Type") {
