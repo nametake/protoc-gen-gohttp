@@ -19,6 +19,16 @@ func New() *Generator {
 	return &Generator{}
 }
 
+type targetFile struct {
+	file     *descriptor.FileDescriptorProto
+	services []*targetService
+}
+
+type targetService struct {
+	service *descriptor.ServiceDescriptorProto
+	methods []*descriptor.MethodDescriptorProto
+}
+
 func p(w io.Writer, format string, args ...interface{}) {
 	if w == nil {
 		return
@@ -33,17 +43,17 @@ func p(w io.Writer, format string, args ...interface{}) {
 
 func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	// Filter files with Service.
-	filterdFiles := make([]*descriptor.FileDescriptorProto, 0)
+	targetFiles := make([]*targetFile, 0)
 	for _, f := range req.GetProtoFile() {
-		if len(f.GetService()) == 0 {
-			continue
+		target := g.genTarget(f)
+		if target != nil {
+			targetFiles = append(targetFiles, target)
 		}
-		filterdFiles = append(filterdFiles, f)
 	}
 
 	// Generate response files from proto files.
 	respFiles := make([]*plugin.CodeGeneratorResponse_File, 0)
-	for _, f := range filterdFiles {
+	for _, f := range targetFiles {
 		respFiles = append(respFiles, g.genRespFile(f))
 	}
 
@@ -61,21 +71,46 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	}, nil
 }
 
-func (g *Generator) genRespFile(file *descriptor.FileDescriptorProto) *plugin.CodeGeneratorResponse_File {
-	buf := &bytes.Buffer{}
-	g.writePackage(buf, file)
-	g.writeImports(buf)
-	for _, service := range file.GetService() {
-		g.writeService(buf, service)
-		for _, method := range service.GetMethod() {
-			if method.GetServerStreaming() {
-				continue
+func (g *Generator) genTarget(file *descriptor.FileDescriptorProto) *targetFile {
+	if len(file.GetService()) == 0 {
+		return nil
+	}
+	tFile := &targetFile{
+		file: file,
+	}
+
+	tService := &targetService{}
+	for _, s := range file.GetService() {
+		tService.service = s
+		for _, m := range s.GetMethod() {
+			if !m.GetServerStreaming() && !m.GetClientStreaming() {
+				tService.methods = append(tService.methods, m)
 			}
-			g.writeMethod(buf, service, method)
+		}
+		if len(tService.methods) > 0 {
+			tFile.services = append(tFile.services, tService)
+		}
+	}
+
+	if len(tFile.services) > 0 {
+		return tFile
+	}
+
+	return nil
+}
+
+func (g *Generator) genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
+	buf := &bytes.Buffer{}
+	g.writePackage(buf, target.file)
+	g.writeImports(buf)
+	for _, service := range target.services {
+		g.writeService(buf, service.service)
+		for _, method := range service.methods {
+			g.writeMethod(buf, service.service, method)
 		}
 	}
 	return &plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(basename(file.GetName()) + ".http.go"),
+		Name:    proto.String(basename(target.file.GetName()) + ".http.go"),
 		Content: proto.String(buf.String()),
 	}
 }
