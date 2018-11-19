@@ -162,7 +162,7 @@ func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProt
 	p(w, "	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {")
 	p(w, "		var (")
 	p(w, "			ctx = r.Context()")
-	p(w, "			arg *%s", ioname(m.GetInputType()))
+	p(w, "			arg = &%s{}", ioname(m.GetInputType()))
 	p(w, "			ret *%s", ioname(m.GetOutputType()))
 	p(w, "			err error")
 	p(w, "		)")

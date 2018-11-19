@@ -35,7 +35,7 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx = r.Context()
-			arg *HelloRequest
+			arg = &HelloRequest{}
 			ret *HelloReply
 			err error
 		)

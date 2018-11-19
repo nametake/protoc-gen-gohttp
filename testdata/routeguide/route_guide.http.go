@@ -35,7 +35,7 @@ func (h *RouteGuideHandler) GetFeature(cb func(ctx context.Context, w http.Respo
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx = r.Context()
-			arg *Point
+			arg = &Point{}
 			ret *Feature
 			err error
 		)

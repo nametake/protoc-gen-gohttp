@@ -33,6 +33,8 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 					return nil, err
 				}
 
+				t.Log(body.String())
+
 				req := httptest.NewRequest(http.MethodPost, "/", body)
 				req.Header.Set("Content-Type", "application/json")
 				return req, nil

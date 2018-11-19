@@ -35,7 +35,7 @@ func (h *TestServiceHandler) UnaryCall(cb func(ctx context.Context, w http.Respo
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ctx = r.Context()
-			arg *Request
+			arg = &Request{}
 			ret *Response
 			err error
 		)
