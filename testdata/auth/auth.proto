@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package grpc.testing;
+
+option go_package = "testingpb";
+
+message Request {
+  bool fill_username = 4;
+  bool fill_oauth_scope = 5;
+}
+
+message Response {
+  string username = 2;
+  string oauth_scope = 3;
+}
+
+service TestService {
+  rpc UnaryCall(Request) returns (Response);
+}
