@@ -168,7 +168,7 @@ func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProt
 	p(w, "			return")
 	p(w, "		}")
 	p(w, "")
-	p(w, "		var arg *%s", ioname(m.GetInputType()))
+	p(w, "		arg := &%s{}", ioname(m.GetInputType()))
 	p(w, "")
 	p(w, "		contentType := r.Header.Get(\"Content-Type\")")
 	p(w, "		switch contentType {")

@@ -41,7 +41,7 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 			return
 		}
 
-		var arg *HelloRequest
+		arg := &HelloRequest{}
 
 		contentType := r.Header.Get("Content-Type")
 		switch contentType {
