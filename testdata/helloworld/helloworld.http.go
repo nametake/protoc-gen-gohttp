@@ -33,37 +33,38 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 		}
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var (
-			ctx = r.Context()
-			arg = &HelloRequest{}
-			ret *HelloReply
-			err error
-		)
-		defer cb(ctx, w, r, arg, ret, err)
+		ctx := r.Context()
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
 			return
 		}
+
+		var arg *HelloRequest
 
 		contentType := r.Header.Get("Content-Type")
 		switch contentType {
 		case "application/protobuf", "application/x-protobuf":
-			if err = proto.Unmarshal(body, arg); err != nil {
+			if err := proto.Unmarshal(body, arg); err != nil {
+				cb(ctx, w, r, nil, nil, err)
 				return
 			}
 		case "application/json":
-			if err = jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+			if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+				cb(ctx, w, r, nil, nil, err)
 				return
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			_, err = fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			cb(ctx, w, r, nil, nil, err)
 			return
 		}
 
-		ret, err = h.srv.SayHello(ctx, arg)
+		ret, err := h.srv.SayHello(ctx, arg)
 		if err != nil {
+			cb(ctx, w, r, arg, nil, err)
 			return
 		}
 
@@ -71,19 +72,24 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
 			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
 				return
 			}
 			if _, err = io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+				cb(ctx, w, r, arg, ret, err)
 				return
 			}
 		case "application/json":
 			if err = json.NewEncoder(w).Encode(ret); err != nil {
+				cb(ctx, w, r, arg, ret, err)
 				return
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			_, err = fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			cb(ctx, w, r, arg, ret, err)
 			return
 		}
+		cb(ctx, w, r, arg, ret, nil)
 	})
 }
