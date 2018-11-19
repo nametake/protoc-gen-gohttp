@@ -42,7 +42,7 @@ func p(w io.Writer, format string, args ...interface{}) {
 }
 
 func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
-	// Filter files with Service.
+	// Filter files to target files.
 	targetFiles := make([]*targetFile, 0)
 	for _, f := range req.GetProtoFile() {
 		target := g.genTarget(f)
