@@ -13,12 +13,10 @@ import (
 )
 
 func TestHelloWorldServer_SayHello(t *testing.T) {
-
 	var tests = []struct {
 		name    string
 		reqFunc func() (*http.Request, error)
 		cb      func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
-		wantErr bool
 		want    *HelloReply
 	}{
 		{
@@ -37,8 +35,7 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 				req.Header.Set("Content-Type", "application/json")
 				return req, nil
 			},
-			cb:      nil,
-			wantErr: false,
+			cb: nil,
 			want: &HelloReply{
 				Message: "Hello, John!",
 			},
@@ -60,8 +57,7 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 				req.Header.Set("Content-Type", "application/protobuf")
 				return req, nil
 			},
-			cb:      nil,
-			wantErr: false,
+			cb: nil,
 			want: &HelloReply{
 				Message: "Hello, Smith!",
 			},
