@@ -1,0 +1,11 @@
+---
+version: 2
+jobs:
+  build:
+    docker:
+      - image: nametake/protoc-gen-gohttp:latest
+    working_directory: /go/src/github.com/nametake/protoc-gen-gohttp
+    steps:
+      - checkout
+
+      - run: make test
