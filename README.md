@@ -17,7 +17,7 @@ go get -u github.com/nametake/protoc-gen-gohttp
 And install dependent tools. (e.g. macOS)
 
 ```console
-brew install protoc
+brew install protobuf
 go get -u github.com/golang/protobuf/protoc-gen-go
 ```
 
