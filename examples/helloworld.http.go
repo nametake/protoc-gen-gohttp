@@ -93,3 +93,7 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 		cb(ctx, w, r, arg, ret, nil)
 	})
 }
+
+func (h *GreeterHandler) SayHelloWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
+	return "greeter/sayhello", h.SayHello(cb)
+}
