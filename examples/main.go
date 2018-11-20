@@ -30,7 +30,7 @@ func main() {
 	// If you do not need a callback, pass nil as argument.
 	http.Handle("/sayhello", conv.SayHello(nil))
 	// If you need an auto-generated Path, use the SayHelloWithPath method.
-	// In this case, the string 'greeter/server' is returned.
+	// In this case, the string '/greeter/sayhello' is returned.
 	http.Handle(conv.SayHelloWithPath(nil))
 
 	http.ListenAndServe(":8080", nil)

@@ -95,5 +95,5 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 }
 
 func (h *GreeterHTTPConverter) SayHelloWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
-	return "greeter/sayhello", h.SayHello(cb)
+	return "/greeter/sayhello", h.SayHello(cb)
 }

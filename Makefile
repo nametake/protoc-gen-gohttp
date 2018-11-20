@@ -9,3 +9,6 @@ gen_example: install
 
 test: gen_example
 	@go test ./...
+
+run_examples:
+	go run examples/main.go examples/greeter.pb.go examples/greeter.http.go

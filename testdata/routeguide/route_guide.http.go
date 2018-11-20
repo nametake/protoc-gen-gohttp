@@ -95,5 +95,5 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 }
 
 func (h *RouteGuideHTTPConverter) GetFeatureWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
-	return "routeguide/getfeature", h.GetFeature(cb)
+	return "/routeguide/getfeature", h.GetFeature(cb)
 }
