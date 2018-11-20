@@ -93,3 +93,7 @@ func (h *TestServiceHandler) UnaryCall(cb func(ctx context.Context, w http.Respo
 		cb(ctx, w, r, arg, ret, nil)
 	})
 }
+
+func (h *TestServiceHandler) UnaryCallWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
+	return "testservice/unarycall", h.UnaryCall(cb)
+}

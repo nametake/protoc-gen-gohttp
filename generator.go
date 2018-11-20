@@ -107,6 +107,7 @@ func (g *Generator) genRespFile(target *targetFile) *plugin.CodeGeneratorRespons
 		g.writeService(buf, service.service)
 		for _, method := range service.methods {
 			g.writeMethod(buf, service.service, method)
+			g.writeMethodWithPath(buf, service.service, method)
 		}
 	}
 	return &plugin.CodeGeneratorResponse_File{
@@ -219,6 +220,13 @@ func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProt
 	p(w, "		}")
 	p(w, "		cb(ctx, w, r, arg, ret, nil)")
 	p(w, "	})")
+	p(w, "}")
+	p(w, "")
+}
+
+func (g *Generator) writeMethodWithPath(w io.Writer, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
+	p(w, "func (h *%sHandler) %sWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {", s.GetName(), m.GetName())
+	p(w, "	return \"%s/%s\", h.%s(cb)", strings.ToLower(s.GetName()), strings.ToLower(m.GetName()), m.GetName())
 	p(w, "}")
 	p(w, "")
 }
