@@ -13,17 +13,17 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-type GreeterHandler struct {
+type GreeterHTTPConverter struct {
 	srv GreeterServer
 }
 
-func NewGreeterHandler(srv GreeterServer) *GreeterHandler {
-	return &GreeterHandler{
+func NewGreeterHTTPConverter(srv GreeterServer) *GreeterHTTPConverter {
+	return &GreeterHTTPConverter{
 		srv: srv,
 	}
 }
 
-func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -94,6 +94,6 @@ func (h *GreeterHandler) SayHello(cb func(ctx context.Context, w http.ResponseWr
 	})
 }
 
-func (h *GreeterHandler) SayHelloWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
+func (h *GreeterHTTPConverter) SayHelloWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
 	return "greeter/sayhello", h.SayHello(cb)
 }

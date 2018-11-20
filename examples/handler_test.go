@@ -88,7 +88,7 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 		},
 	}
 
-	handler := NewGreeterHandler(&HelloWorldServer{})
+	handler := NewGreeterHTTPConverter(&HelloWorldServer{})
 
 	for _, tt := range tests {
 		tt := tt

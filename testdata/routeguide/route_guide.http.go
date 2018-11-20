@@ -13,17 +13,17 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-type RouteGuideHandler struct {
+type RouteGuideHTTPConverter struct {
 	srv RouteGuideServer
 }
 
-func NewRouteGuideHandler(srv RouteGuideServer) *RouteGuideHandler {
-	return &RouteGuideHandler{
+func NewRouteGuideHTTPConverter(srv RouteGuideServer) *RouteGuideHTTPConverter {
+	return &RouteGuideHTTPConverter{
 		srv: srv,
 	}
 }
 
-func (h *RouteGuideHandler) GetFeature(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -94,6 +94,6 @@ func (h *RouteGuideHandler) GetFeature(cb func(ctx context.Context, w http.Respo
 	})
 }
 
-func (h *RouteGuideHandler) GetFeatureWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
+func (h *RouteGuideHTTPConverter) GetFeatureWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
 	return "routeguide/getfeature", h.GetFeature(cb)
 }

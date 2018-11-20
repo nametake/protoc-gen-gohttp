@@ -13,17 +13,17 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-type TestServiceHandler struct {
+type TestServiceHTTPConverter struct {
 	srv TestServiceServer
 }
 
-func NewTestServiceHandler(srv TestServiceServer) *TestServiceHandler {
-	return &TestServiceHandler{
+func NewTestServiceHTTPConverter(srv TestServiceServer) *TestServiceHTTPConverter {
+	return &TestServiceHTTPConverter{
 		srv: srv,
 	}
 }
 
-func (h *TestServiceHandler) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -94,6 +94,6 @@ func (h *TestServiceHandler) UnaryCall(cb func(ctx context.Context, w http.Respo
 	})
 }
 
-func (h *TestServiceHandler) UnaryCallWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
+func (h *TestServiceHTTPConverter) UnaryCallWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
 	return "testservice/unarycall", h.UnaryCall(cb)
 }
