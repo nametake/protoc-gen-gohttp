@@ -1,4 +1,4 @@
-package example
+package main
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestHelloWorldServer_SayHello(t *testing.T) {
+func TestEchoGreeterServer_SayHello(t *testing.T) {
 	var tests = []struct {
 		name    string
 		reqFunc func() (*http.Request, error)
@@ -88,7 +88,7 @@ func TestHelloWorldServer_SayHello(t *testing.T) {
 		},
 	}
 
-	handler := NewGreeterHTTPConverter(&HelloWorldServer{})
+	handler := NewGreeterHTTPConverter(&EchoGreeterServer{})
 
 	for _, tt := range tests {
 		tt := tt
