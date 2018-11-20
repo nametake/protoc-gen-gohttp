@@ -1,4 +1,7 @@
-install:
+ensure:
+	@dep ensure
+
+install: ensure
 	@go install
 
 gen_example: install
