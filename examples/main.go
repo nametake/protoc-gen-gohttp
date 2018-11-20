@@ -43,7 +43,10 @@ func main() {
 // and receives Context, ResponseWriter, Request, service argument, service return value and error.
 func logCallback(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 	log.Printf("INFO: call %s: arg: {%v}, ret: {%s}", r.RequestURI, arg, ret)
+	// YOU MUST ERROR HANDLING
 	if err != nil {
 		log.Printf("ERROR: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"error": "%v"}`, err)
 	}
 }
