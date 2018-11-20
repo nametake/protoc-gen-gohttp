@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/golang/protobuf/proto"
 )
 
 // EchoGreeterServer has implemented the GreeterServer interface that created from the service in proto file.
@@ -28,10 +31,19 @@ func main() {
 
 	// Register SayHello HandlerFunc to the server.
 	// If you do not need a callback, pass nil as argument.
-	http.Handle("/sayhello", conv.SayHello(nil))
+	http.Handle("/sayhello", conv.SayHello(logCallback))
 	// If you need an auto-generated Path, use the SayHelloWithPath method.
 	// In this case, the string '/greeter/sayhello' is returned.
-	http.Handle(conv.SayHelloWithPath(nil))
+	http.Handle(conv.SayHelloWithPath(logCallback))
 
 	http.ListenAndServe(":8080", nil)
+}
+
+// logCallback is called when exiting ServeHTTP
+// and receives Context, ResponseWriter, Request, service argument, service return value and error.
+func logCallback(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
+	log.Printf("INFO: call %s: arg: {%v}, ret: {%s}", r.RequestURI, arg, ret)
+	if err != nil {
+		log.Printf("ERROR: %v", err)
+	}
 }
