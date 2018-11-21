@@ -111,6 +111,6 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 	})
 }
 
-func (h *TestServiceHTTPConverter) UnaryCallWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
-	return "/testservice/unarycall", h.UnaryCall(cb)
+func (h *TestServiceHTTPConverter) UnaryCallWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+	return "TestService", "UnaryCall", h.UnaryCall(cb)
 }

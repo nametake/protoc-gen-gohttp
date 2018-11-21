@@ -111,6 +111,6 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 	})
 }
 
-func (h *GreeterHTTPConverter) SayHelloWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {
-	return "/greeter/sayhello", h.SayHello(cb)
+func (h *GreeterHTTPConverter) SayHelloWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+	return "Greeter", "SayHello", h.SayHello(cb)
 }

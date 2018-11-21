@@ -242,8 +242,8 @@ func (g *Generator) writeMethod(w io.Writer, s *descriptor.ServiceDescriptorProt
 }
 
 func (g *Generator) writeMethodWithPath(w io.Writer, s *descriptor.ServiceDescriptorProto, m *descriptor.MethodDescriptorProto) {
-	p(w, "func (h *%sHTTPConverter) %sWithPath(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, http.HandlerFunc) {", s.GetName(), m.GetName())
-	p(w, "	return \"/%s/%s\", h.%s(cb)", strings.ToLower(s.GetName()), strings.ToLower(m.GetName()), m.GetName())
+	p(w, "func (h *%sHTTPConverter) %sWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {", s.GetName(), m.GetName())
+	p(w, "	return \"%s\", \"%s\", h.%s(cb)", s.GetName(), m.GetName(), m.GetName())
 	p(w, "}")
 	p(w, "")
 }
