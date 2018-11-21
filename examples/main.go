@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/codes"
@@ -39,7 +40,7 @@ func main() {
 	http.Handle("/sayhello", conv.SayHello(logCallback))
 	// If you need an auto-generated Path, use the SayHelloWithPath method.
 	// In this case, the string '/greeter/sayhello' is returned.
-	http.Handle(conv.SayHelloWithPath(logCallback))
+	http.Handle(restPath(conv.SayHelloWithName(logCallback)))
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -69,4 +70,8 @@ func logCallback(ctx context.Context, w http.ResponseWriter, r *http.Request, ar
 		default:
 		}
 	}
+}
+
+func restPath(service, method string, hf http.HandlerFunc) (string, http.HandlerFunc) {
+	return fmt.Sprintf("/%s/%s", strings.ToLower(service), strings.ToLower(method)), hf
 }
