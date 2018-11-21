@@ -11,6 +11,8 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type TestServiceHTTPConverter struct {
@@ -28,7 +30,22 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%v: arg = %v: ret = %v", err, arg, ret)
+				p := status.New(codes.Unknown, err.Error()).Proto()
+				switch r.Header.Get("Content-Type") {
+				case "application/protobuf", "application/x-protobuf":
+					buf, err := proto.Marshal(p)
+					if err != nil {
+						return
+					}
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+						return
+					}
+				case "application/json":
+					if err := json.NewEncoder(w).Encode(p); err != nil {
+						return
+					}
+				default:
+				}
 			}
 		}
 	}
