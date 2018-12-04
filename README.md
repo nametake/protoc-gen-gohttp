@@ -159,7 +159,7 @@ You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is
 
 If nil is set, errors are always handled as InternalServerError.
 
-NOT SUPOPRTED
+NOT SUPPORTED
 -------------
 
 -	Streaming API
