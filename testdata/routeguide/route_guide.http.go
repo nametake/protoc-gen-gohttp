@@ -97,7 +97,11 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 				return
 			}
 		case "application/json":
-			if err := json.NewEncoder(w).Encode(ret); err != nil {
+			m := jsonpb.Marshaler{
+				EnumsAsInts:  true,
+				EmitDefaults: true,
+			}
+			if err := m.Marshal(w, ret); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
