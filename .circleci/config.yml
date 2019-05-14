@@ -3,9 +3,31 @@ version: 2
 jobs:
   build:
     docker:
-      - image: nametake/protoc-gen-gohttp:latest
+      - image: circleci/golang:1.12
+        environment:
+          GO111MODULE: "on"
+          PROTOC_VERSION: "3.5.1"
     working_directory: /go/src/github.com/nametake/protoc-gen-gohttp
     steps:
       - checkout
-
+      - run:
+          name: Setup protoc
+          command: |
+            curl -fo protoc.zip -sSL "https://github.com/google/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+            mkdir protoc
+            unzip -q protoc.zip -d protoc
+            sudo install -m 755 ./protoc/bin/protoc /usr/local/bin/
+            sudo cp -a ./protoc/include/google /usr/local/include/
+            rm protoc.zip protoc -rf
+      - run:
+          name: install protoc-gen-go
+          command: go get -u github.com/golang/protobuf/protoc-gen-go
+          environment:
+            GO111MODULE: "off"
       - run: make test
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
