@@ -7,7 +7,12 @@ jobs:
     working_directory: /go/src/github.com/nametake/protoc-gen-gohttp
     steps:
       - checkout
-
+      - run:
+          name: Setup Environment Variables
+          command: |
+            echo 'export GOPATH=/go' >> $BASH_ENV
+            echo 'export PATH="$GOPATH/bin:$PATH"' >> $BASH_ENV
+            echo 'export GO111MODULE=on' >> $BASH_ENV
       - run: make test
 
 workflows:
