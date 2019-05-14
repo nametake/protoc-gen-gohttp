@@ -1,8 +1,5 @@
-ensure:
-	@dep ensure -vendor-only
-
-install: ensure
-	@go install
+install:
+	@go get
 
 gen_example: install
 	@protoc --gohttp_out=. ./examples/*.proto
