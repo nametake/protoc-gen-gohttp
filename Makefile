@@ -1,3 +1,5 @@
+GO111MODULE=on
+
 install:
 	@go get
 
