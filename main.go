@@ -26,7 +26,7 @@ func run() error {
 		return err
 	}
 
-	resp, err := New().Generate(&req)
+	resp, err := Generate(&req)
 	if err != nil {
 		return err
 	}
