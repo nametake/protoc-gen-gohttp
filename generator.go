@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"html/template"
 	"io"
+	"log"
 	"path"
 	"strings"
 
@@ -20,26 +22,17 @@ func New() *Generator {
 }
 
 type targetFile struct {
-	file     *descriptor.FileDescriptorProto
-	services []*targetService
+	Name     string
+	Pkg      string
+	Services []*targetService
 }
 
 type targetService struct {
-	service *descriptor.ServiceDescriptorProto
-	methods []*descriptor.MethodDescriptorProto
-}
-
-type file struct {
-	Name string
-	Pkg  string
-}
-
-type service struct {
 	Name    string
-	Methods []*method
+	Methods []*targetMethod
 }
 
-type method struct {
+type targetMethod struct {
 	Name string
 	Arg  string
 }
@@ -91,42 +84,50 @@ func (g *Generator) genTarget(file *descriptor.FileDescriptorProto) *targetFile 
 		return nil
 	}
 	tFile := &targetFile{
-		file: file,
+		Name:     file.GetName(),
+		Pkg:      file.GetOptions().GetGoPackage(),
+		Services: make([]*targetService, 0),
 	}
 
-	tService := &targetService{}
 	for _, s := range file.GetService() {
-		tService.service = s
+		service := &targetService{
+			Name:    s.GetName(),
+			Methods: make([]*targetMethod, 0),
+		}
 		for _, m := range s.GetMethod() {
+			method := &targetMethod{
+				Name: m.GetName(),
+				Arg:  m.GetInputType(),
+			}
 			if !m.GetServerStreaming() && !m.GetClientStreaming() {
-				tService.methods = append(tService.methods, m)
+				service.Methods = append(service.Methods, method)
 			}
 		}
-		if len(tService.methods) > 0 {
-			tFile.services = append(tFile.services, tService)
+		if len(service.Methods) > 0 {
+			tFile.Services = append(tFile.Services, service)
 		}
+		tFile.Services = append(tFile.Services, service)
 	}
 
-	if len(tFile.services) > 0 {
-		return tFile
+	if len(tFile.Services) <= 0 {
+		return nil
 	}
 
-	return nil
+	return tFile
 }
 
 func (g *Generator) genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
 	buf := &bytes.Buffer{}
-	g.writePackage(buf, target.file)
-	g.writeImports(buf)
-	for _, service := range target.services {
-		g.writeService(buf, service.service)
-		for _, method := range service.methods {
-			g.writeMethod(buf, service.service, method)
-			g.writeMethodWithPath(buf, service.service, method)
-		}
+
+	t := template.Must(template.New("gohttp").Parse(codeTemplate))
+
+	if err := t.Execute(buf, target); err != nil {
+		log.Println("executing template:", err)
+		panic(err)
 	}
+
 	return &plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(basename(target.file.GetName()) + ".http.go"),
+		Name:    proto.String(basename(target.Name) + ".http.go"),
 		Content: proto.String(buf.String()),
 	}
 }
