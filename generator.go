@@ -63,43 +63,45 @@ func genTarget(file *descriptor.FileDescriptorProto) *targetFile {
 	if len(file.GetService()) == 0 {
 		return nil
 	}
-	tFile := &targetFile{
+	f := &targetFile{
 		Name:     file.GetName(),
 		Pkg:      file.GetOptions().GetGoPackage(),
 		Services: make([]*targetService, 0),
 	}
 
-	for _, s := range file.GetService() {
-		service := &targetService{
-			Name:    s.GetName(),
+	for _, service := range file.GetService() {
+		s := &targetService{
+			Name:    service.GetName(),
 			Methods: make([]*targetMethod, 0),
 		}
-		for _, m := range s.GetMethod() {
-			method := &targetMethod{
-				Name: m.GetName(),
-				Arg:  ioname(m.GetInputType()),
+		for _, method := range service.GetMethod() {
+			// Not generate streaming method
+			if method.GetServerStreaming() || method.GetClientStreaming() {
+				continue
 			}
-			if !m.GetServerStreaming() && !m.GetClientStreaming() {
-				service.Methods = append(service.Methods, method)
-			}
+			s.Methods = append(s.Methods, &targetMethod{
+				Name: method.GetName(),
+				Arg:  ioname(method.GetInputType()),
+			})
 		}
-		if len(service.Methods) > 0 {
-			tFile.Services = append(tFile.Services, service)
+		// Add if Service has a method
+		if len(s.Methods) <= 0 {
+			continue
 		}
+		f.Services = append(f.Services, s)
 	}
 
-	if len(tFile.Services) <= 0 {
+	// Generate if File has a service
+	if len(f.Services) <= 0 {
 		return nil
 	}
-
-	return tFile
+	return f
 }
 
 func genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
 	buf := &bytes.Buffer{}
 
 	t := template.Must(template.New("gohttp").Parse(codeTemplate))
-
 	if err := t.Execute(buf, target); err != nil {
 		log.Println("executing template:", err)
 		panic(err)
