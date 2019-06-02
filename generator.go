@@ -2,10 +2,8 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"go/format"
 	"html/template"
-	"io"
 	"log"
 	"path"
 	"strings"
@@ -14,12 +12,6 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
-
-type Generator struct{}
-
-func New() *Generator {
-	return &Generator{}
-}
 
 type targetFile struct {
 	Name     string
@@ -37,23 +29,11 @@ type targetMethod struct {
 	Arg  string
 }
 
-func p(w io.Writer, format string, args ...interface{}) {
-	if w == nil {
-		return
-	}
-	if _, err := fmt.Fprintf(w, format, args...); err != nil {
-		panic(err)
-	}
-	if _, err := fmt.Fprintln(w); err != nil {
-		panic(err)
-	}
-}
-
-func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+func Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	// Filter files to target files.
 	targetFiles := make([]*targetFile, 0)
 	for _, f := range req.GetProtoFile() {
-		target := g.genTarget(f)
+		target := genTarget(f)
 		if target != nil {
 			targetFiles = append(targetFiles, target)
 		}
@@ -62,7 +42,7 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	// Generate response files from proto files.
 	respFiles := make([]*plugin.CodeGeneratorResponse_File, 0)
 	for _, f := range targetFiles {
-		respFiles = append(respFiles, g.genRespFile(f))
+		respFiles = append(respFiles, genRespFile(f))
 	}
 
 	// Format response files content.
@@ -79,7 +59,7 @@ func (g *Generator) Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGene
 	}, nil
 }
 
-func (g *Generator) genTarget(file *descriptor.FileDescriptorProto) *targetFile {
+func genTarget(file *descriptor.FileDescriptorProto) *targetFile {
 	if len(file.GetService()) == 0 {
 		return nil
 	}
@@ -115,7 +95,7 @@ func (g *Generator) genTarget(file *descriptor.FileDescriptorProto) *targetFile 
 	return tFile
 }
 
-func (g *Generator) genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
+func genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
 	buf := &bytes.Buffer{}
 
 	t := template.Must(template.New("gohttp").Parse(codeTemplate))
