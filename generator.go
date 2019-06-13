@@ -214,7 +214,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 		}
 
 		accept := r.Header.Get("Accept")
-		if accept == "*/*" {
+		if accept == "*/*" || accept == ""{
 			if contentType != "" {
 				accept = contentType
 			} else {

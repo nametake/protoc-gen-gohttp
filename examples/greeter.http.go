@@ -87,7 +87,7 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 		}
 
 		accept := r.Header.Get("Accept")
-		if accept == "*/*" {
+		if accept == "*/*" || accept == "" {
 			if contentType != "" {
 				accept = contentType
 			} else {
