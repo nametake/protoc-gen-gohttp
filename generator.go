@@ -181,15 +181,13 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 
 		arg := &{{ $method.Arg }}{}
 		contentType := r.Header.Get("Content-Type")
-
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			cb(ctx, w, r, nil, nil, err)
-			return
-		}
-
-
 		if r.Method != http.MethodGet {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+
 			switch contentType {
 			case "application/protobuf", "application/x-protobuf":
 				if err := proto.Unmarshal(body, arg); err != nil {

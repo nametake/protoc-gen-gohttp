@@ -52,31 +52,32 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			cb(ctx, w, r, nil, nil, err)
-			return
-		}
-
 		arg := &Point{}
-
 		contentType := r.Header.Get("Content-Type")
-		switch contentType {
-		case "application/protobuf", "application/x-protobuf":
-			if err := proto.Unmarshal(body, arg); err != nil {
+		if r.Method != http.MethodGet {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
 				cb(ctx, w, r, nil, nil, err)
 				return
 			}
-		case "application/json":
-			if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+
+			switch contentType {
+			case "application/protobuf", "application/x-protobuf":
+				if err := proto.Unmarshal(body, arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			case "application/json":
+				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			default:
+				w.WriteHeader(http.StatusUnsupportedMediaType)
+				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 				cb(ctx, w, r, nil, nil, err)
 				return
 			}
-		default:
-			w.WriteHeader(http.StatusUnsupportedMediaType)
-			_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
-			cb(ctx, w, r, nil, nil, err)
-			return
 		}
 
 		ret, err := h.srv.GetFeature(ctx, arg)
@@ -85,7 +86,16 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 			return
 		}
 
-		switch contentType {
+		accept := r.Header.Get("Accept")
+		if accept == "*/*" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		switch accept {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
 			if err != nil {
