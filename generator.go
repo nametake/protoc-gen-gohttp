@@ -244,7 +244,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			_, err := fmt.Fprintf(w, "Unsupported Accept: %s", accept)
 			cb(ctx, w, r, arg, ret, err)
 			return
 		}

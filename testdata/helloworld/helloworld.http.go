@@ -117,7 +117,7 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			_, err := fmt.Fprintf(w, "Unsupported Accept: %s", accept)
 			cb(ctx, w, r, arg, ret, err)
 			return
 		}
