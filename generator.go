@@ -135,6 +135,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -213,7 +214,8 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 			return
 		}
 
-		accept := r.Header.Get("Accept")
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
 		if accept == "*/*" || accept == ""{
 			if contentType != "" {
 				accept = contentType
@@ -244,7 +246,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			_, err := fmt.Fprintf(w, "Unsupported Accept: %s", accept)
 			cb(ctx, w, r, arg, ret, err)
 			return
 		}

@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -86,7 +87,8 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 			return
 		}
 
-		accept := r.Header.Get("Accept")
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
 		if accept == "*/*" || accept == "" {
 			if contentType != "" {
 				accept = contentType
@@ -117,7 +119,7 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 			}
 		default:
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+			_, err := fmt.Fprintf(w, "Unsupported Accept: %s", accept)
 			cb(ctx, w, r, arg, ret, err)
 			return
 		}
