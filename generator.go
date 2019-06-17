@@ -135,6 +135,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -213,7 +214,8 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 			return
 		}
 
-		accept := r.Header.Get("Accept")
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
 		if accept == "*/*" || accept == ""{
 			if contentType != "" {
 				accept = contentType
