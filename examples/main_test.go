@@ -101,6 +101,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			rec := httptest.NewRecorder()
 			handler.SayHello(tt.cb).ServeHTTP(rec, req)
 
+			// Check in callback
 			if tt.wantErr {
 				return
 			}
