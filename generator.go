@@ -85,14 +85,14 @@ func genTarget(file *descriptor.FileDescriptorProto) *targetFile {
 			})
 		}
 		// Add if Service has a method
-		if len(s.Methods) <= 0 {
+		if len(s.Methods) == 0 {
 			continue
 		}
 		f.Services = append(f.Services, s)
 	}
 
 	// Generate if File has a service
-	if len(f.Services) <= 0 {
+	if len(f.Services) == 0 {
 		return nil
 	}
 	return f
