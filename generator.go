@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/pseudomuto/protokit"
 )
 
 type targetFile struct {
@@ -29,10 +29,13 @@ type targetMethod struct {
 	Arg  string
 }
 
+// Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
 func Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+	descriptors := protokit.ParseCodeGenRequest(req)
+
 	// Filter files to target files.
 	targetFiles := make([]*targetFile, 0)
-	for _, f := range req.GetProtoFile() {
+	for _, f := range descriptors {
 		target := genTarget(f)
 		if target != nil {
 			targetFiles = append(targetFiles, target)
@@ -59,8 +62,8 @@ func Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, 
 	}, nil
 }
 
-func genTarget(file *descriptor.FileDescriptorProto) *targetFile {
-	if len(file.GetService()) == 0 {
+func genTarget(file *protokit.FileDescriptor) *targetFile {
+	if len(file.GetServices()) == 0 {
 		return nil
 	}
 	f := &targetFile{
@@ -69,7 +72,7 @@ func genTarget(file *descriptor.FileDescriptorProto) *targetFile {
 		Services: make([]*targetService, 0),
 	}
 
-	for _, service := range file.GetService() {
+	for _, service := range file.GetServices() {
 		s := &targetService{
 			Name:    service.GetName(),
 			Methods: make([]*targetMethod, 0),
