@@ -21,16 +21,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 {{ range $i, $service := .Services }}
+// {{ $service.Name }}HTTPConverter has a function to convert {{ $service.Name }}Server interface to http.HandlerFunc.
 type {{ $service.Name }}HTTPConverter struct {
 	srv {{ $service.Name }}Server
 }
 
+// New{{ $service.Name }}HTTPConverter returns {{ $service.Name }}HTTPConverter.
 func New{{ $service.Name }}HTTPConverter(srv {{ $service.Name }}Server) *{{ $service.Name }}HTTPConverter {
 	return &{{ $service.Name }}HTTPConverter{
 		srv: srv,
 	}
 }
 {{ range $j, $method := $service.Methods }}
+// {{ $method.Name }} returns {{ $service.Name }}Server interface's {{ $method.Name }} converted to http.HandlerFunc.
 func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -132,6 +135,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 	})
 }
 
+// {{ $method.Name }}WithName returns Service name, Method name and {{ $service.Name }}Server interface's {{ $method.Name }} converted to http.HandlerFunc.
 func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}WithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
 	return "{{ $service.Name }}", "{{ $method.Name }}", h.{{ $method.Name }}(cb)
 }{{ end }}{{ end }}
