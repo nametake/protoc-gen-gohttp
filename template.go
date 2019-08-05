@@ -34,6 +34,10 @@ func New{{ $service.Name }}HTTPConverter(srv {{ $service.Name }}Server) *{{ $ser
 }
 {{ range $j, $method := $service.Methods }}
 // {{ $method.Name }} returns {{ $service.Name }}Server interface's {{ $method.Name }} converted to http.HandlerFunc.
+{{ if ne $method.Comment "" -}}
+//
+// {{ $method.Comment }}
+{{ end -}}
 func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -136,6 +140,10 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 }
 
 // {{ $method.Name }}WithName returns Service name, Method name and {{ $service.Name }}Server interface's {{ $method.Name }} converted to http.HandlerFunc.
+{{ if ne $method.Comment "" -}}
+//
+// {{ $method.Comment }}
+{{ end -}}
 func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}WithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
 	return "{{ $service.Name }}", "{{ $method.Name }}", h.{{ $method.Name }}(cb)
 }{{ end }}{{ end }}

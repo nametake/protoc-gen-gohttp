@@ -25,8 +25,9 @@ type targetService struct {
 }
 
 type targetMethod struct {
-	Name string
-	Arg  string
+	Name    string
+	Arg     string
+	Comment string
 }
 
 // Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
@@ -77,14 +78,15 @@ func genTarget(file *protokit.FileDescriptor) *targetFile {
 			Name:    service.GetName(),
 			Methods: make([]*targetMethod, 0),
 		}
-		for _, method := range service.GetMethod() {
+		for _, method := range service.GetMethods() {
 			// Not generate streaming method
 			if method.GetServerStreaming() || method.GetClientStreaming() {
 				continue
 			}
 			s.Methods = append(s.Methods, &targetMethod{
-				Name: method.GetName(),
-				Arg:  ioname(method.GetInputType()),
+				Name:    method.GetName(),
+				Arg:     ioname(method.GetInputType()),
+				Comment: method.GetComments().GetLeading(),
 			})
 		}
 		// Add if Service has a method
