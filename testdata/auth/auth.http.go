@@ -19,16 +19,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// TestServiceHTTPConverter has a function to convert GreeterServer interface to http.HandlerFunc.
 type TestServiceHTTPConverter struct {
 	srv TestServiceServer
 }
 
+// NewTestServiceHTTPConverter returns TestServiceHTTPConverter.
 func NewTestServiceHTTPConverter(srv TestServiceServer) *TestServiceHTTPConverter {
 	return &TestServiceHTTPConverter{
 		srv: srv,
 	}
 }
 
+// UnaryCall returns TestServiceServer interface's UnaryCall converted to http.HandlerFunc.
 func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -130,6 +133,7 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 	})
 }
 
+// UnaryCallWithName returns Service name, Method name and .TestServiceServer interface's UnaryCall converted to http.HandlerFunc.
 func (h *TestServiceHTTPConverter) UnaryCallWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
 	return "TestService", "UnaryCall", h.UnaryCall(cb)
 }

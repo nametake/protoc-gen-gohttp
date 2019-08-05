@@ -5,6 +5,7 @@ package helloworld;
 option go_package = "helloworldpb";
 
 service Greeter {
+  // SayHello says hello.
   rpc SayHello(HelloRequest) returns (HelloReply) {}
 }
 

@@ -19,16 +19,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// RouteGuideHTTPConverter has a function to convert RouteGuideServer interface to http.HandlerFunc.
 type RouteGuideHTTPConverter struct {
 	srv RouteGuideServer
 }
 
+// NewRouteGuideHTTPConverter returns RouteGuideHTTPConverter.
 func NewRouteGuideHTTPConverter(srv RouteGuideServer) *RouteGuideHTTPConverter {
 	return &RouteGuideHTTPConverter{
 		srv: srv,
 	}
 }
 
+// GetFeature returns RouteGuideServer interface's GetFeature converted to http.HandlerFunc.
 func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -130,6 +133,7 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 	})
 }
 
+// GetFeatureWithName returns Service name, Method name and RouteGuideServer interface's GetFeature converted to http.HandlerFunc.
 func (h *RouteGuideHTTPConverter) GetFeatureWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
 	return "RouteGuide", "GetFeature", h.GetFeature(cb)
 }
