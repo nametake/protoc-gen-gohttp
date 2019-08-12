@@ -138,6 +138,35 @@ func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context,
 	return "Messaging", "GetMessage", h.GetMessage(cb)
 }
 
+func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+	if cb == nil {
+		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				p := status.New(codes.Unknown, err.Error()).Proto()
+				switch r.Header.Get("Content-Type") {
+				case "application/protobuf", "application/x-protobuf":
+					buf, err := proto.Marshal(p)
+					if err != nil {
+						return
+					}
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+						return
+					}
+				case "application/json":
+					if err := json.NewEncoder(w).Encode(p); err != nil {
+						return
+					}
+				default:
+				}
+			}
+		}
+	}
+	return http.MethodGet, "", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO
+	})
+}
+
 // UpdateMessage returns MessagingServer interface's UpdateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
 	if cb == nil {
