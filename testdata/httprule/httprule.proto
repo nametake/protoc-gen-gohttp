@@ -10,6 +10,18 @@ service Messaging {
   rpc GetMessage(GetMessageRequest) returns (Message) {
     option (google.api.http).get = "/v1/messages/{message_id}/{sub.subfield}";
   }
+  rpc UpdateMessage(UpdateMessageRequest) returns (Message) {
+    option (google.api.http) = {
+      put: "/v1/messages/{message_id}"
+      body: "message"
+    };
+  }
+  rpc UpdateMessage2(Message2) returns (Message2) {
+    option (google.api.http) = {
+      put: "/v1/messages/{message_id}"
+      body: "*"
+    };
+  }
 }
 
 message GetMessageRequest {
@@ -17,7 +29,17 @@ message GetMessageRequest {
     string subfield = 1;
   }
   string message_id = 1; // mapped to the URL
-  SubMessage sub = 2;    // `sub.subfield` is url-mapped
+  SubMessage sub = 2; // `sub.subfield` is url-mapped
+}
+
+message UpdateMessageRequest {
+  string message_id = 1; // mapped to the URL
+  Message message = 2; // mapped to the body
+}
+
+message Message2 {
+  string message_id = 1;
+  string text = 2;
 }
 
 message Message {

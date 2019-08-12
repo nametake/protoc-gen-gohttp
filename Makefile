@@ -13,6 +13,7 @@ run_examples:
 	@go run examples/main.go examples/greeter.pb.go examples/greeter.http.go
 
 curl_google_api:
+	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > testdata/google/api/annotations.proto 
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > testdata/google/api/http.proto
 
 gen_test_grpc_go_files:
