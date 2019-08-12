@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package httprule;
+
+option go_package = "httprulepb";
+
+service Messaging {
+  rpc GetMessage(GetMessageRequest) returns (Message) {
+    option (google.api.http).get = "/v1/messages/{message_id}/{sub.subfield}";
+  }
+}
+
+message GetMessageRequest {
+  message SubMessage {
+    string subfield = 1;
+  }
+  string message_id = 1; // mapped to the URL
+  SubMessage sub = 2;    // `sub.subfield` is url-mapped
+}
+
+message Message {
+  string text = 1; // content of the resource
+}
