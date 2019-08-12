@@ -44,7 +44,7 @@ func TestGolden(t *testing.T) {
 
 	// Compile each package, using this binary as protoc-gen-gohttp.
 	for _, sources := range packages {
-		args := []string{"--gohttp_out=" + workdir}
+		args := []string{"-Itestdata", "--gohttp_out=" + workdir}
 		args = append(args, sources...)
 		protoc(t, args)
 	}
@@ -70,7 +70,7 @@ func TestGolden(t *testing.T) {
 			return nil
 		}
 
-		goldenPath := filepath.Join(relPath)
+		goldenPath := filepath.Join("testdata", relPath)
 		want, err := ioutil.ReadFile(goldenPath)
 		if err != nil {
 			t.Error(err)

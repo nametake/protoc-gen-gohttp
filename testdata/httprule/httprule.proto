@@ -4,6 +4,8 @@ package httprule;
 
 option go_package = "httprulepb";
 
+import "google/api/annotations.proto";
+
 service Messaging {
   rpc GetMessage(GetMessageRequest) returns (Message) {
     option (google.api.http).get = "/v1/messages/{message_id}/{sub.subfield}";
