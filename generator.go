@@ -11,6 +11,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pseudomuto/protokit"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 type targetFile struct {
@@ -25,9 +26,13 @@ type targetService struct {
 }
 
 type targetMethod struct {
-	Name    string
-	Arg     string
-	Comment string
+	Name     string
+	Arg      string
+	Comment  string
+	HTTPRule *targetHTTPRule
+}
+
+type targetHTTPRule struct {
 }
 
 // Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
@@ -84,9 +89,10 @@ func genTarget(file *protokit.FileDescriptor) *targetFile {
 				continue
 			}
 			s.Methods = append(s.Methods, &targetMethod{
-				Name:    method.GetName(),
-				Arg:     ioname(method.GetInputType()),
-				Comment: method.GetComments().GetLeading(),
+				Name:     method.GetName(),
+				Arg:      ioname(method.GetInputType()),
+				Comment:  method.GetComments().GetLeading(),
+				HTTPRule: parseHTTPRule(method),
 			})
 		}
 		// Add if Service has a method
@@ -116,6 +122,13 @@ func genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
 		Name:    proto.String(basename(target.Name) + ".http.go"),
 		Content: proto.String(buf.String()),
 	}
+}
+
+func parseHTTPRule(md *protokit.MethodDescriptor) *targetHTTPRule {
+	if _, ok := md.OptionExtensions["google.api.http"].(*annotations.HttpRule); ok {
+		return &targetHTTPRule{}
+	}
+	return nil
 }
 
 func basename(name string) string {
