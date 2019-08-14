@@ -5,6 +5,7 @@ import (
 	"go/format"
 	"html/template"
 	"log"
+	"net/http"
 	"path"
 	"strings"
 
@@ -33,6 +34,24 @@ type targetMethod struct {
 }
 
 type targetHTTPRule struct {
+	Method  string
+	Pattern string
+}
+
+func (t *targetHTTPRule) GetMethod() string {
+	switch t.Method {
+	case http.MethodGet:
+		return "http.MethodGet"
+	case http.MethodPut:
+		return "http.MethodPut"
+	case http.MethodPost:
+		return "http.MethodPost"
+	case http.MethodDelete:
+		return "http.MethodDelete"
+	case http.MethodPatch:
+		return "http.MethodPatch"
+	}
+	return ""
 }
 
 // Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
@@ -125,8 +144,26 @@ func genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
 }
 
 func parseHTTPRule(md *protokit.MethodDescriptor) *targetHTTPRule {
-	if _, ok := md.OptionExtensions["google.api.http"].(*annotations.HttpRule); ok {
-		return &targetHTTPRule{}
+	if httpRule, ok := md.OptionExtensions["google.api.http"].(*annotations.HttpRule); ok {
+		target := &targetHTTPRule{}
+		switch httpRule.GetPattern().(type) {
+		case *annotations.HttpRule_Get:
+			target.Method = http.MethodGet
+			target.Pattern = httpRule.GetGet()
+		case *annotations.HttpRule_Put:
+			target.Method = http.MethodPut
+			target.Pattern = httpRule.GetPut()
+		case *annotations.HttpRule_Post:
+			target.Method = http.MethodPost
+			target.Pattern = httpRule.GetPost()
+		case *annotations.HttpRule_Delete:
+			target.Method = http.MethodDelete
+			target.Pattern = httpRule.GetDelete()
+		case *annotations.HttpRule_Patch:
+			target.Method = http.MethodPatch
+			target.Pattern = httpRule.GetPatch()
+		}
+		return target
 	}
 	return nil
 }

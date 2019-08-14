@@ -173,7 +173,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 			}
 		}
 	}
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return {{ $method.HTTPRule.GetMethod }}, "{{ $method.HTTPRule.Pattern }}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		arg := &{{ $method.Arg }}{}
