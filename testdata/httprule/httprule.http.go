@@ -193,6 +193,9 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 			}
 		}
 
+		p := strings.Split(r.URL.Path, "/")
+		arg.MessageId = p[3]
+
 		ret, err := h.srv.UpdateMessage(ctx, arg)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
