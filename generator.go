@@ -34,8 +34,9 @@ type targetMethod struct {
 }
 
 type targetHTTPRule struct {
-	Method  string
-	Pattern string
+	Method    string
+	Pattern   string
+	Valiables []*targetValiable
 }
 
 func (t *targetHTTPRule) GetMethod() string {
@@ -52,6 +53,11 @@ func (t *targetHTTPRule) GetMethod() string {
 		return "http.MethodPatch"
 	}
 	return ""
+}
+
+type targetValiable struct {
+	Index int
+	Path  string
 }
 
 // Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
