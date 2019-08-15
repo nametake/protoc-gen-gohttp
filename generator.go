@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -36,7 +37,7 @@ type targetMethod struct {
 type targetHTTPRule struct {
 	Method    string
 	Pattern   string
-	Valiables []*targetValiable
+	Variables []*targetVariable
 }
 
 func (t *targetHTTPRule) GetMethod() string {
@@ -55,9 +56,13 @@ func (t *targetHTTPRule) GetMethod() string {
 	return ""
 }
 
-type targetValiable struct {
+type targetVariable struct {
 	Index int
 	Path  string
+}
+
+func (t *targetVariable) GetPath() string {
+	return toCamelCase(t.Path)
 }
 
 // Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
@@ -182,7 +187,7 @@ func parseHTTPRule(md *protokit.MethodDescriptor) (*targetHTTPRule, error) {
 		if err != nil {
 			return nil, err
 		}
-		target.Valiables = valiables
+		target.Variables = valiables
 
 		return target, nil
 	}
@@ -199,4 +204,12 @@ func basename(name string) string {
 func ioname(name string) string {
 	s := strings.Split(name, ".")
 	return s[len(s)-1]
+}
+
+var toCamelCaseRe = regexp.MustCompile(`(^[A-Za-z])|(_|\.)([A-Za-z])`)
+
+func toCamelCase(str string) string {
+	return toCamelCaseRe.ReplaceAllStringFunc(str, func(s string) string {
+		return strings.ToUpper(strings.Replace(s, "_", "", -1))
+	})
 }

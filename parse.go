@@ -25,7 +25,7 @@ import (
 // 	}, nil
 // }
 
-func parsePattern(pattern string) ([]*targetValiable, error) {
+func parsePattern(pattern string) ([]*targetVariable, error) {
 	if !strings.HasPrefix(pattern, "/") {
 		return nil, fmt.Errorf("no leading /")
 	}
@@ -37,10 +37,10 @@ func parsePattern(pattern string) ([]*targetValiable, error) {
 		return nil, err
 	}
 
-	valiables := make([]*targetValiable, 0)
+	valiables := make([]*targetVariable, 0)
 	for i, seg := range segs {
 		if v, ok := seg.(variable); ok {
-			valiables = append(valiables, &targetValiable{
+			valiables = append(valiables, &targetVariable{
 				Index: i + 1,
 				Path:  v.path,
 			})

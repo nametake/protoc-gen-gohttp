@@ -204,6 +204,14 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 			}
 		}
 
+		{{ if $method.HTTPRule.Variables -}}
+		p := strings.Split(r.URL.Path, "/")
+		{{ end -}}
+		{{ range $j, $variable := $method.HTTPRule.Variables -}}
+		arg.{{ $variable.GetPath }} = p[{{ $variable.Index }}]
+
+		{{ end -}}
+
 		ret, err := h.srv.{{ $method.Name }}(ctx, arg)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
