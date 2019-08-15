@@ -25,9 +25,9 @@ import (
 // 	}, nil
 // }
 
-func parsePattern(pattern string) ([]segment, error) {
+func parsePattern(pattern string) ([]*targetValiable, error) {
 	if !strings.HasPrefix(pattern, "/") {
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("no leading /")
 	}
 	tokens, _ := tokenize(pattern[1:])
 
@@ -36,7 +36,18 @@ func parsePattern(pattern string) ([]segment, error) {
 	if err != nil {
 		return nil, err
 	}
-	return segs, nil
+
+	valiables := make([]*targetValiable, 0)
+	for i, seg := range segs {
+		if v, ok := seg.(variable); ok {
+			valiables = append(valiables, &targetValiable{
+				Index: i + 1,
+				Path:  v.path,
+			})
+		}
+	}
+
+	return valiables, nil
 }
 
 func tokenize(path string) (tokens []string, verb string) {

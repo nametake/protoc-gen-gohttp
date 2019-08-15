@@ -67,7 +67,10 @@ func Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, 
 	// Filter files to target files.
 	targetFiles := make([]*targetFile, 0)
 	for _, f := range descriptors {
-		target := genTarget(f)
+		target, err := genTarget(f)
+		if err != nil {
+			return nil, err
+		}
 		if target != nil {
 			targetFiles = append(targetFiles, target)
 		}
@@ -93,9 +96,9 @@ func Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, 
 	}, nil
 }
 
-func genTarget(file *protokit.FileDescriptor) *targetFile {
+func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 	if len(file.GetServices()) == 0 {
-		return nil
+		return nil, nil
 	}
 	f := &targetFile{
 		Name:     file.GetName(),
@@ -113,11 +116,16 @@ func genTarget(file *protokit.FileDescriptor) *targetFile {
 			if method.GetServerStreaming() || method.GetClientStreaming() {
 				continue
 			}
+			httpRule, err := parseHTTPRule(method)
+			if err != nil {
+				return nil, err
+			}
+
 			s.Methods = append(s.Methods, &targetMethod{
 				Name:     method.GetName(),
 				Arg:      ioname(method.GetInputType()),
 				Comment:  method.GetComments().GetLeading(),
-				HTTPRule: parseHTTPRule(method),
+				HTTPRule: httpRule,
 			})
 		}
 		// Add if Service has a method
@@ -129,9 +137,9 @@ func genTarget(file *protokit.FileDescriptor) *targetFile {
 
 	// Generate if File has a service
 	if len(f.Services) == 0 {
-		return nil
+		return nil, nil
 	}
-	return f
+	return f, nil
 }
 
 func genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
@@ -149,7 +157,7 @@ func genRespFile(target *targetFile) *plugin.CodeGeneratorResponse_File {
 	}
 }
 
-func parseHTTPRule(md *protokit.MethodDescriptor) *targetHTTPRule {
+func parseHTTPRule(md *protokit.MethodDescriptor) (*targetHTTPRule, error) {
 	if httpRule, ok := md.OptionExtensions["google.api.http"].(*annotations.HttpRule); ok {
 		target := &targetHTTPRule{}
 		switch httpRule.GetPattern().(type) {
@@ -169,9 +177,16 @@ func parseHTTPRule(md *protokit.MethodDescriptor) *targetHTTPRule {
 			target.Method = http.MethodPatch
 			target.Pattern = httpRule.GetPatch()
 		}
-		return target
+
+		valiables, err := parsePattern(target.Pattern)
+		if err != nil {
+			return nil, err
+		}
+		target.Valiables = valiables
+
+		return target, nil
 	}
-	return nil
+	return nil, nil
 }
 
 func basename(name string) string {
