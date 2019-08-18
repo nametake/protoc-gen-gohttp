@@ -127,12 +127,17 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 }
 
 func TestEchoGreeterServer_Echo(t *testing.T) {
+	type want struct {
+		Method string
+		Path   string
+		Resp   *EchoReply
+	}
 	var tests = []struct {
 		name    string
 		reqFunc func() (*http.Request, error)
 		cb      func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
 		wantErr bool
-		want    *EchoReply
+		want    *want
 	}{
 		{
 			name: "Content-Type JSON",
@@ -152,9 +157,13 @@ func TestEchoGreeterServer_Echo(t *testing.T) {
 			},
 			cb:      nil,
 			wantErr: false,
-			want: &EchoReply{
-				MessageId: "1234abc",
-				Msg:       "Hello!",
+			want: &want{
+				Method: http.MethodPost,
+				Path:   "/v1/messages/{message_id}",
+				Resp: &EchoReply{
+					MessageId: "1234abc",
+					Msg:       "Hello!",
+				},
 			},
 		},
 		{
@@ -176,9 +185,13 @@ func TestEchoGreeterServer_Echo(t *testing.T) {
 			},
 			cb:      nil,
 			wantErr: false,
-			want: &EchoReply{
-				MessageId: "1234abc",
-				Msg:       "Hello!",
+			want: &want{
+				Method: http.MethodPost,
+				Path:   "/v1/messages/{message_id}",
+				Resp: &EchoReply{
+					MessageId: "1234abc",
+					Msg:       "Hello!",
+				},
 			},
 		},
 		{
@@ -215,7 +228,7 @@ func TestEchoGreeterServer_Echo(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			_, _, h := handler.EchoHTTPRule(tt.cb)
+			method, path, h := handler.EchoHTTPRule(tt.cb)
 			h.ServeHTTP(rec, req)
 
 			// Check in callback
@@ -235,7 +248,7 @@ func TestEchoGreeterServer_Echo(t *testing.T) {
 				}
 			default:
 			}
-			if diff := cmp.Diff(resp, tt.want); diff != "" {
+			if diff := cmp.Diff(&want{Method: method, Path: path, Resp: resp}, tt.want); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})

@@ -10,7 +10,7 @@ service Greeter {
   rpc SayHello(HelloRequest) returns (HelloReply);
   rpc Echo(EchoRequest) returns (EchoReply) {
     option (google.api.http) = {
-      put: "/v1/messages/{message_id}"
+      post: "/v1/messages/{message_id}"
       body: "*"
     };
   }

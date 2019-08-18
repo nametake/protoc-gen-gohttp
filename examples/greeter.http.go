@@ -269,7 +269,7 @@ func (h *GreeterHTTPConverter) EchoHTTPRule(cb func(ctx context.Context, w http.
 			}
 		}
 	}
-	return http.MethodPut, "/v1/messages/{message_id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.MethodPost, "/v1/messages/{message_id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		arg := &EchoRequest{}
