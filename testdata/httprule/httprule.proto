@@ -13,11 +13,26 @@ service Messaging {
       body: "*"
     };
   }
+  rpc SubFieldMessage(SubFieldMessageRequest) returns (Message) {
+    option (google.api.http) = {
+      post: "/v1/messages/{message_id}/{sub.subfield}"
+      body: "*"
+    };
+  }
 }
 
 message UpdateMessageRequest {
   string message_id = 1; // mapped to the URL
   Message message = 2; // mapped to the body
+}
+
+message SubFieldMessageRequest {
+  message SubMessage {
+    string subfield = 1;
+  }
+  string message_id = 1;
+  SubMessage sub = 2;
+  string text = 3;
 }
 
 message Message {
