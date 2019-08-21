@@ -28,10 +28,11 @@ type targetService struct {
 }
 
 type targetMethod struct {
-	Name     string
-	Arg      string
-	Comment  string
-	HTTPRule *targetHTTPRule
+	Name        string
+	Arg         string
+	Comment     string
+	HTTPRule    *targetHTTPRule
+	QueryParams *targetQueryParam
 }
 
 type targetHTTPRule struct {
@@ -63,6 +64,9 @@ type targetVariable struct {
 
 func (t *targetVariable) GetPath() string {
 	return toCamelCase(t.Path)
+}
+
+type targetQueryParam struct {
 }
 
 // Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
