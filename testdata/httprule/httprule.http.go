@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
@@ -167,30 +168,14 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 
 		arg := &GetMessageRequest{}
 		contentType := r.Header.Get("Content-Type")
-		if r.Method != http.MethodGet {
-			body, err := ioutil.ReadAll(r.Body)
+		if r.Method == http.MethodGet {
+			var err error
+			arg.Revision, err = strconv.ParseInt(r.URL.Query().Get("revision"), 10, 64)
 			if err != nil {
 				cb(ctx, w, r, nil, nil, err)
 				return
 			}
-
-			switch contentType {
-			case "application/protobuf", "application/x-protobuf":
-				if err := proto.Unmarshal(body, arg); err != nil {
-					cb(ctx, w, r, nil, nil, err)
-					return
-				}
-			case "application/json":
-				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
-					cb(ctx, w, r, nil, nil, err)
-					return
-				}
-			default:
-				w.WriteHeader(http.StatusUnsupportedMediaType)
-				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
-				cb(ctx, w, r, nil, nil, err)
-				return
-			}
+			arg.Sub.Subfield = r.URL.Query().Get("sub.subfield")
 		}
 
 		p := strings.Split(r.URL.Path, "/")
