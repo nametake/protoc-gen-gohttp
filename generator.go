@@ -24,6 +24,20 @@ type targetFile struct {
 	Services []*targetService
 }
 
+func (t *targetFile) IsImportStrConv() bool {
+	for _, service := range t.Services {
+		for _, method := range service.Methods {
+			for _, queryParam := range method.QueryParams {
+				switch queryParam.QueryType {
+				case queryInt64, queryString:
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 type targetService struct {
 	Name    string
 	Methods []*targetMethod

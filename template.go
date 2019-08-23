@@ -13,6 +13,9 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	{{ if .IsImportStrConv -}}
+	"strconv"
+	{{ end -}}
 	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
