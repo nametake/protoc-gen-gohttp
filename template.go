@@ -178,8 +178,13 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 
 		arg := &{{ $method.Arg }}{}
 		contentType := r.Header.Get("Content-Type")
-		{{ if $method.QueryParams -}}
-		{{ template "queryString" -}}
+		{{ if $method.GetQueryParams -}}
+		if r.Method == http.MethodGet {
+			var err error
+		{{ range $k, $queryParam := $method.GetQueryParams -}}
+		{{ template "queryString" $queryParam -}}
+		{{ end -}}
+		}
 		{{ else -}}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
@@ -267,8 +272,8 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 
 const queryParamsTemplate = `{{ define "queryString" -}}
 {{ if eq .QueryType "STRING" -}}
-arg.{{ .GetPath }} = r.URL.QUery().Get("{{ .Key }}")
-{{ else if eq .QueryType "INT64" }}
+arg.{{ .GetPath }} = r.URL.Query().Get("{{ .Key }}")
+{{ else if eq .QueryType "INT64" -}}
 arg.{{ .GetPath }}, err = strconv.ParseInt(r.URL.Query().Get("{{ .Key }}"), 10, 64)
 if err != nil {
 	cb(ctx, w, r, nil, nil, err)

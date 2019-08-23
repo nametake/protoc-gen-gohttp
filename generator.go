@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"go/format"
 	"html/template"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pseudomuto/protokit"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -32,7 +34,20 @@ type targetMethod struct {
 	Arg         string
 	Comment     string
 	HTTPRule    *targetHTTPRule
-	QueryParams *targetQueryParam
+	QueryParams []*targetQueryParam
+}
+
+func (t *targetMethod) GetQueryParams() []*targetQueryParam {
+	params := make([]*targetQueryParam, 0)
+	for _, param := range t.QueryParams {
+		for _, v := range t.HTTPRule.Variables {
+			if param.Path == v.Path {
+				continue
+			}
+			params = append(params, param)
+		}
+	}
+	return params
 }
 
 type targetHTTPRule struct {
@@ -66,7 +81,22 @@ func (t *targetVariable) GetPath() string {
 	return toCamelCase(t.Path)
 }
 
+const (
+	queryString = "STRING"
+	queryInt64  = "INT64"
+)
+
 type targetQueryParam struct {
+	QueryType string
+	Path      string
+}
+
+func (t *targetQueryParam) GetPath() string {
+	return toCamelCase(t.Path)
+}
+
+func (t *targetQueryParam) Key() string {
+	return t.Path
 }
 
 // Generate receives a CodeGeneratorRequest and returns a CodeGeneratorResponse.
@@ -109,6 +139,7 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 	if len(file.GetServices()) == 0 {
 		return nil, nil
 	}
+
 	f := &targetFile{
 		Name:     file.GetName(),
 		Pkg:      file.GetOptions().GetGoPackage(),
@@ -131,10 +162,11 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 			}
 
 			s.Methods = append(s.Methods, &targetMethod{
-				Name:     method.GetName(),
-				Arg:      ioname(method.GetInputType()),
-				Comment:  method.GetComments().GetLeading(),
-				HTTPRule: httpRule,
+				Name:        method.GetName(),
+				Arg:         ioname(method.GetInputType()),
+				Comment:     method.GetComments().GetLeading(),
+				HTTPRule:    httpRule,
+				QueryParams: parseQueryParam(method, file.GetMessages()),
 			})
 		}
 		// Add if Service has a method
@@ -196,6 +228,67 @@ func parseHTTPRule(md *protokit.MethodDescriptor) (*targetHTTPRule, error) {
 		return target, nil
 	}
 	return nil, nil
+}
+
+func parseQueryParam(md *protokit.MethodDescriptor, msgs []*protokit.Descriptor) []*targetQueryParam {
+	httpRule, ok := md.OptionExtensions["google.api.http"].(*annotations.HttpRule)
+	if !ok {
+		return nil
+	}
+	if _, ok := httpRule.GetPattern().(*annotations.HttpRule_Get); !ok {
+		return nil
+	}
+	queryParams := make([]*targetQueryParam, 0)
+
+	// Define func that to parse field name and type recursively.
+	var f func(parent string, fields []*protokit.FieldDescriptor)
+	f = func(parent string, fields []*protokit.FieldDescriptor) {
+		for _, field := range fields {
+			label := field.GetLabel()
+			typ := field.GetType()
+			switch {
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_INT64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryInt64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_STRING:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryString,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+				for _, msg := range msgs {
+					if strings.HasSuffix(field.GetTypeName(), msg.GetFullName()) {
+						f(fmt.Sprintf("%s.", field.GetName()), msg.GetMessageFields())
+						break
+					} else if strings.Contains(field.GetTypeName(), msg.GetFullName()) {
+						for _, m := range msg.GetMessages() {
+							f(fmt.Sprintf("%s.", field.GetName()), m.GetMessageFields())
+						}
+					}
+				}
+			default:
+				return
+			}
+		}
+	}
+
+	var input *protokit.Descriptor
+	for _, msg := range msgs {
+		if strings.HasSuffix(md.GetInputType(), msg.GetFullName()) {
+			input = msg
+			break
+		}
+	}
+
+	if input == nil {
+		return nil
+	}
+
+	f("", input.GetMessageFields())
+
+	return queryParams
 }
 
 func basename(name string) string {
