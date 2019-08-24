@@ -282,8 +282,6 @@ func parseQueryParam(md *protokit.MethodDescriptor, msgs []*protokit.Descriptor)
 						}
 					}
 				}
-			default:
-				return
 			}
 		}
 	}
