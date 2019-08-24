@@ -273,10 +273,12 @@ func parseQueryParam(md *protokit.MethodDescriptor, msgs []*protokit.Descriptor)
 				})
 			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 				for _, msg := range msgs {
+					// ex.) GetTypeName == .a.b.c.d & GetFullName == a.b.c.d
 					if strings.HasSuffix(field.GetTypeName(), msg.GetFullName()) {
 						f(fmt.Sprintf("%s.", field.GetName()), msg.GetMessageFields())
 						break
 					} else if strings.Contains(field.GetTypeName(), msg.GetFullName()) {
+						// ex.) GetTypeName == .a.b.c.d & GetFullName == a.b.c
 						for _, m := range msg.GetMessages() {
 							f(fmt.Sprintf("%s.", field.GetName()), m.GetMessageFields())
 						}
