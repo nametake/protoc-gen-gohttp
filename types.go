@@ -1,3 +1,4 @@
+// Refer: https://github.com/grpc-ecosystem/grpc-gateway/blob/4ba7ec0bc390cae4a2d03625ac122aa8a772ac3a/protoc-gen-grpc-gateway/httprule/types.go
 package main
 
 import (

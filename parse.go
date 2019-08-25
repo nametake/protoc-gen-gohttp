@@ -1,29 +1,10 @@
+// Refer: https://github.com/grpc-ecosystem/grpc-gateway/blob/4ba7ec0bc390cae4a2d03625ac122aa8a772ac3a/protoc-gen-grpc-gateway/httprule/parse.go
 package main
 
 import (
 	"fmt"
 	"strings"
 )
-
-// Parse parses the string representation of path template
-// func Parse(tmpl string) (Compiler, error) {
-// 	if !strings.HasPrefix(tmpl, "/") {
-// 		return template{}, InvalidTemplateError{tmpl: tmpl, msg: "no leading /"}
-// 	}
-// 	tokens, verb := tokenize(tmpl[1:])
-//
-// 	p := parser{tokens: tokens}
-// 	segs, err := p.topLevelSegments()
-// 	if err != nil {
-// 		return template{}, InvalidTemplateError{tmpl: tmpl, msg: err.Error()}
-// 	}
-//
-// 	return template{
-// 		segments: segs,
-// 		verb:     verb,
-// 		template: tmpl,
-// 	}, nil
-// }
 
 func parsePattern(pattern string) ([]*targetVariable, error) {
 	if !strings.HasPrefix(pattern, "/") {
