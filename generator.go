@@ -109,7 +109,13 @@ type targetQueryParam struct {
 }
 
 func (t *targetQueryParam) GetPath() string {
-	return toCamelCase(t.Path)
+	p := toCamelCase(t.Path)
+	for _, name := range methodNames {
+		if strings.HasSuffix(p, name) {
+			return fmt.Sprintf("%s_", p)
+		}
+	}
+	return p
 }
 
 func (t *targetQueryParam) Key() string {
@@ -326,4 +332,19 @@ func toCamelCase(str string) string {
 	return toCamelCaseRe.ReplaceAllStringFunc(str, func(s string) string {
 		return strings.ToUpper(strings.Replace(s, "_", "", -1))
 	})
+}
+
+// Refer: https://github.com/golang/protobuf/blob/e91709a02e0e8ff8b86b7aa913fdc9ae9498e825/protoc-gen-go/generator/generator.go#L1674
+// Method names that may be generated.  Fields with these names get an
+// underscore appended. Any change to this set is a potential incompatible
+// API change because it changes generated field names.
+var methodNames = [...]string{
+	"Reset",
+	"String",
+	"ProtoMessage",
+	"Marshal",
+	"Unmarshal",
+	"ExtensionRangeArray",
+	"ExtensionMap",
+	"Descriptor",
 }
