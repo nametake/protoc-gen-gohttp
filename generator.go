@@ -52,6 +52,9 @@ type targetMethod struct {
 }
 
 func (t *targetMethod) GetQueryParams() []*targetQueryParam {
+	if len(t.HTTPRule.Variables) == 0 {
+		return t.QueryParams
+	}
 	params := make([]*targetQueryParam, 0)
 	for _, param := range t.QueryParams {
 		for _, v := range t.HTTPRule.Variables {
