@@ -275,12 +275,293 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 
 const queryParamsTemplate = `{{ define "queryString" -}}
 {{ if eq .QueryType "STRING" -}}
-arg.{{ .GetPath }} = r.URL.Query().Get("{{ .Key }}")
+{
+	d, err := strconv.ParseFloat(r.URL.Query().Get("double"), 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Double = d
+}
+{{ else if eq .QueryType "FLOAT" -}}
+{
+	f, err := strconv.ParseFloat(r.URL.Query().Get("float"), 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Float = float32(f)
+}
+{{ else if eq .QueryType "INT32" -}}
+{
+	i32, err := strconv.ParseInt(r.URL.Query().Get("int32"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Int32 = int32(i32)
+}
 {{ else if eq .QueryType "INT64" -}}
-arg.{{ .GetPath }}, err = strconv.ParseInt(r.URL.Query().Get("{{ .Key }}"), 10, 64)
-if err != nil {
-	cb(ctx, w, r, nil, nil, err)
-	return
+{
+	i64, err := strconv.ParseInt(r.URL.Query().Get("int64"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Int64 = i64
+}
+{{ else if eq .QueryType "UINT32" -}}
+{
+	ui32, err := strconv.ParseUint(r.URL.Query().Get("uint32"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Uint32 = uint32(ui32)
+}
+{{ else if eq .QueryType "UINT64" -}}
+{
+	ui64, err := strconv.ParseUint(r.URL.Query().Get("uint64"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Uint64 = uint64(ui64)
+}
+{{ else if eq .QueryType "FIXED32" -}}
+{
+	f32, err := strconv.ParseUint(r.URL.Query().Get("fixed32"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Fixed32 = uint32(f32)
+}
+{{ else if eq .QueryType "FIXED64" -}}
+{
+	f64, err := strconv.ParseUint(r.URL.Query().Get("fixed64"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Fixed64 = uint64(f64)
+}
+{{ else if eq .QueryType "SFIXED32" -}}
+{
+	sf32, err := strconv.ParseInt(r.URL.Query().Get("sfixed32"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Sfixed32 = int32(sf32)
+}
+{{ else if eq .QueryType "SFIXED64" -}}
+{
+	sf64, err := strconv.ParseInt(r.URL.Query().Get("sfixed64"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Sfixed64 = int64(sf64)
+}
+{{ else if eq .QueryType "BOOL" -}}
+{
+	b, err := strconv.ParseBool(r.URL.Query().Get("bool"))
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Bool = b
+}
+{{ else if eq .QueryType "STRING" -}}
+{
+	arg.String_ = r.URL.Query().Get("string")
+}
+{{ else if eq .QueryType "BYTES" -}}
+{
+	b, err := base64.StdEncoding.DecodeString(r.URL.Query().Get("bytes"))
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.Bytes = b
+}
+{{ else if eq .QueryType "REPEATED_DOUBLE" -}}
+{
+	repeated := r.URL.Query()["repeated_double"]
+	arr := make([]float64, 0, len(repeated))
+	for _, v := range repeated {
+		d, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, d)
+	}
+	arg.RepeatedDouble = arr
+}
+{{ else if eq .QueryType "REPEATED_FLOAT" -}}
+{
+	repeated := r.URL.Query()["repeated_float"]
+	arr := make([]float32, 0, len(repeated))
+	for _, v := range repeated {
+		f, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, float32(f))
+	}
+	arg.RepeatedFloat = arr
+}
+{{ else if eq .QueryType "REPEATED_INT32" -}}
+{
+	repeated := r.URL.Query()["repeated_int32"]
+	arr := make([]int32, 0, len(repeated))
+	for _, v := range repeated {
+		i32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int32(i32))
+	}
+	arg.RepeatedInt32 = arr
+}
+{{ else if eq .QueryType "REPEATED_INT64" -}}
+{
+	repeated := r.URL.Query()["repeated_int64"]
+	arr := make([]int64, 0, len(repeated))
+	for _, v := range repeated {
+		i64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int64(i64))
+	}
+	arg.RepeatedInt64 = arr
+}
+{{ else if eq .QueryType "REPEATED_UINT32" -}}
+{
+	repeated := r.URL.Query()["repeated_uint32"]
+	arr := make([]uint32, 0, len(repeated))
+	for _, v := range repeated {
+		ui32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint32(ui32))
+	}
+	arg.RepeatedUint32 = arr
+}
+{{ else if eq .QueryType "REPEATED_UINT64" -}}
+{
+	repeated := r.URL.Query()["repeated_uint64"]
+	arr := make([]uint64, 0, len(repeated))
+	for _, v := range repeated {
+		ui64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint64(ui64))
+	}
+	arg.RepeatedUint64 = arr
+}
+{{ else if eq .QueryType "REPEATED_FIXED32" -}}
+{
+	repeated := r.URL.Query()["repeated_fixed32"]
+	arr := make([]uint32, 0, len(repeated))
+	for _, v := range repeated {
+		f32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint32(f32))
+	}
+	arg.RepeatedFixed32 = arr
+}
+{{ else if eq .QueryType "REPEATED_FIXED64" -}}
+{
+	repeated := r.URL.Query()["repeated_fixed64"]
+	arr := make([]uint64, 0, len(repeated))
+	for _, v := range repeated {
+		f64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint64(f64))
+	}
+	arg.RepeatedFixed64 = arr
+}
+{{ else if eq .QueryType "REPEATED_SFIXED32" -}}
+{
+	repeated := r.URL.Query()["repeated_sfixed32"]
+	arr := make([]int32, 0, len(repeated))
+	for _, v := range repeated {
+		sf32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int32(sf32))
+	}
+	arg.RepeatedSfixed32 = arr
+}
+{{ else if eq .QueryType "REPEATED_SFIXED64" -}}
+{
+	repeated := r.URL.Query()["repeated_sfixed64"]
+	arr := make([]int64, 0, len(repeated))
+	for _, v := range repeated {
+		sf64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int64(sf64))
+	}
+	arg.RepeatedSfixed64 = arr
+}
+{{ else if eq .QueryType "REPEATED_BOOL" -}}
+{
+	repeated := r.URL.Query()["repeated_bool"]
+	arr := make([]bool, 0, len(repeated))
+	for _, v := range repeated {
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, b)
+	}
+	arg.RepeatedBool = arr
+}
+{{ else if eq .QueryType "REPEATED_STRING" -}}
+{
+	repeated := r.URL.Query()["repeated_string"]
+	arr := make([]string, 0, len(repeated))
+	for _, v := range repeated {
+		arr = append(arr, v)
+	}
+	arg.RepeatedString = arr
+}
+{{ else if eq .QueryType "REPEATED_BYTES" -}}
+{
+	repeated := r.URL.Query()["repeated_bytes"]
+	arr := make([][]byte, 0, len(repeated))
+	for _, v := range repeated {
+		b, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, b)
+	}
+	arg.RepeatedBytes = arr
 }
 {{ end -}}
 {{ end -}}`

@@ -262,14 +262,6 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 				arg.String_ = r.URL.Query().Get("string")
 			}
 			{
-				b, err := strconv.ParseBool(r.URL.Query().Get("bool"))
-				if err != nil {
-					cb(ctx, w, r, nil, nil, err)
-					return
-				}
-				arg.Bool = b
-			}
-			{
 				b, err := base64.StdEncoding.DecodeString(r.URL.Query().Get("bytes"))
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
