@@ -8,6 +8,9 @@ package {{ .Pkg }}
 import (
 	"bytes"
 	"context"
+	{{ if .IsImportBase64 -}}
+	"encoding/base64"
+	{{ end -}}
 	"encoding/json"
 	"fmt"
 	"io"

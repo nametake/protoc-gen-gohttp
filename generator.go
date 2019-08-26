@@ -29,7 +29,42 @@ func (t *targetFile) IsImportStrConv() bool {
 		for _, method := range service.Methods {
 			for _, queryParam := range method.QueryParams {
 				switch queryParam.QueryType {
-				case queryInt64, queryString:
+				case queryDouble,
+					queryFloat,
+					queryInt32,
+					queryInt64,
+					queryUint32,
+					queryUint64,
+					queryFixed32,
+					queryFixed64,
+					querySfixed32,
+					querySfixed64,
+					queryBool,
+					queryRepeatedDouble,
+					queryRepeatedFloat,
+					queryRepeatedInt32,
+					queryRepeatedInt64,
+					queryRepeatedUint32,
+					queryRepeatedUint64,
+					queryRepeatedFixed32,
+					queryRepeatedFixed64,
+					queryRepeatedSfixed32,
+					queryRepeatedSfixed64,
+					queryRepeatedBool:
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func (t *targetFile) IsImportBase64() bool {
+	for _, service := range t.Services {
+		for _, method := range service.Methods {
+			for _, queryParam := range method.QueryParams {
+				switch queryParam.QueryType {
+				case queryBytes, queryRepeatedBytes:
 					return true
 				}
 			}
@@ -99,8 +134,32 @@ func (t *targetVariable) GetPath() string {
 }
 
 const (
-	queryString = "STRING"
-	queryInt64  = "INT64"
+	queryDouble           = "DOUBLE"
+	queryFloat            = "FLOAT"
+	queryInt32            = "INT32"
+	queryInt64            = "INT64"
+	queryUint32           = "UINT32"
+	queryUint64           = "UINT64"
+	queryFixed32          = "FIXED32"
+	queryFixed64          = "FIXED64"
+	querySfixed32         = "SFIXED32"
+	querySfixed64         = "SFIXED64"
+	queryBool             = "BOOL"
+	queryString           = "STRING"
+	queryBytes            = "BYTES"
+	queryRepeatedDouble   = "REPEATED_DOUBLE"
+	queryRepeatedFloat    = "REPEATED_FLOAT"
+	queryRepeatedInt32    = "REPEATED_INT32"
+	queryRepeatedInt64    = "REPEATED_INT64"
+	queryRepeatedUint32   = "REPEATED_UINT32"
+	queryRepeatedUint64   = "REPEATED_UINT64"
+	queryRepeatedFixed32  = "REPEATED_FIXED32"
+	queryRepeatedFixed64  = "REPEATED_FIXED64"
+	queryRepeatedSfixed32 = "REPEATED_SFIXED32"
+	queryRepeatedSfixed64 = "REPEATED_SFIXED64"
+	queryRepeatedBool     = "REPEATED_BOOL"
+	queryRepeatedString   = "REPEATED_STRING"
+	queryRepeatedBytes    = "REPEATED_BYTES"
 )
 
 type targetQueryParam struct {
@@ -109,13 +168,14 @@ type targetQueryParam struct {
 }
 
 func (t *targetQueryParam) GetPath() string {
-	p := toCamelCase(t.Path)
+	p := strings.Split(toCamelCase(t.Path), ".")
 	for _, name := range methodNames {
-		if strings.HasSuffix(p, name) {
-			return fmt.Sprintf("%s_", p)
+		if p[len(p)-1] == name {
+			p[len(p)-1] = fmt.Sprintf("%s_", p[len(p)-1])
+			return strings.Join(p, ".")
 		}
 	}
-	return p
+	return strings.Join(p, ".")
 }
 
 func (t *targetQueryParam) Key() string {
@@ -270,9 +330,59 @@ func parseQueryParam(md *protokit.MethodDescriptor, msgs []*protokit.Descriptor)
 			label := field.GetLabel()
 			typ := field.GetType()
 			switch {
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryDouble,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_FLOAT:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryFloat,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_INT32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryInt32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
 			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_INT64:
 				queryParams = append(queryParams, &targetQueryParam{
 					QueryType: queryInt64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_UINT32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryUint32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_UINT64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryUint64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_FIXED32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryFixed32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_FIXED64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryFixed64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_SFIXED32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: querySfixed32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_SFIXED64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: querySfixed64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_BOOL:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryBool,
 					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
 				})
 			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_STRING:
@@ -280,14 +390,84 @@ func parseQueryParam(md *protokit.MethodDescriptor, msgs []*protokit.Descriptor)
 					QueryType: queryString,
 					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
 				})
+			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_BYTES:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryBytes,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_DOUBLE:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedDouble,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_FLOAT:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedFloat,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_INT32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedInt32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_INT64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedInt64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_UINT32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedUint32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_UINT64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedUint64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_FIXED32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedFixed32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_FIXED64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedFixed64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_SFIXED32:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedSfixed32,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_SFIXED64:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedSfixed64,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_BOOL:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedBool,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_STRING:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedString,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
+			case label == descriptor.FieldDescriptorProto_LABEL_REPEATED && typ == descriptor.FieldDescriptorProto_TYPE_BYTES:
+				queryParams = append(queryParams, &targetQueryParam{
+					QueryType: queryRepeatedBytes,
+					Path:      fmt.Sprintf("%s%s", parent, field.GetName()),
+				})
 			case label == descriptor.FieldDescriptorProto_LABEL_OPTIONAL && typ == descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 				for _, msg := range msgs {
-					// ex.) GetTypeName == .a.b.c.d & GetFullName == a.b.c.d
+					// ex.) GetTypeName == .pkg.Msg.SubMsg & GetFullName == pkg.Msg.SubMsg
 					if strings.HasSuffix(field.GetTypeName(), msg.GetFullName()) {
 						f(fmt.Sprintf("%s.", field.GetName()), msg.GetMessageFields())
 						break
 					} else if strings.Contains(field.GetTypeName(), msg.GetFullName()) {
-						// ex.) GetTypeName == .a.b.c.d & GetFullName == a.b.c
+						// ex.) GetTypeName == .pkg.Msg.SubMsg & GetFullName == pkg.Msg
 						for _, m := range msg.GetMessages() {
 							f(fmt.Sprintf("%s.", field.GetName()), m.GetMessageFields())
 						}
