@@ -258,7 +258,9 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 				}
 				arg.Bool = b
 			}
-			arg.String_ = r.URL.Query().Get("string")
+			{
+				arg.String_ = r.URL.Query().Get("string")
+			}
 			{
 				b, err := strconv.ParseBool(r.URL.Query().Get("bool"))
 				if err != nil {
@@ -274,6 +276,170 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 					return
 				}
 				arg.Bytes = b
+			}
+			{
+				repeated := r.URL.Query()["repeated_double"]
+				arr := make([]float64, 0, len(repeated))
+				for _, v := range repeated {
+					d, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, d)
+				}
+				arg.RepeatedDouble = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_float"]
+				arr := make([]float32, 0, len(repeated))
+				for _, v := range repeated {
+					f, err := strconv.ParseFloat(v, 32)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, float32(f))
+				}
+				arg.RepeatedFloat = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_int32"]
+				arr := make([]int32, 0, len(repeated))
+				for _, v := range repeated {
+					i32, err := strconv.ParseFloat(v, 32)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, int32(i32))
+				}
+				arg.RepeatedInt32 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_int64"]
+				arr := make([]int64, 0, len(repeated))
+				for _, v := range repeated {
+					i64, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, int64(i64))
+				}
+				arg.RepeatedInt64 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_uint32"]
+				arr := make([]uint32, 0, len(repeated))
+				for _, v := range repeated {
+					ui32, err := strconv.ParseFloat(v, 32)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, uint32(ui32))
+				}
+				arg.RepeatedUint32 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_uint64"]
+				arr := make([]uint64, 0, len(repeated))
+				for _, v := range repeated {
+					ui64, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, uint64(ui64))
+				}
+				arg.RepeatedUint64 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_fixed32"]
+				arr := make([]uint32, 0, len(repeated))
+				for _, v := range repeated {
+					f32, err := strconv.ParseFloat(v, 32)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, uint32(f32))
+				}
+				arg.RepeatedFixed32 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_fixed64"]
+				arr := make([]uint64, 0, len(repeated))
+				for _, v := range repeated {
+					f64, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, uint64(f64))
+				}
+				arg.RepeatedFixed64 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_sfixed32"]
+				arr := make([]int32, 0, len(repeated))
+				for _, v := range repeated {
+					sf32, err := strconv.ParseFloat(v, 32)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, int32(sf32))
+				}
+				arg.RepeatedSfixed32 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_sfixed64"]
+				arr := make([]int64, 0, len(repeated))
+				for _, v := range repeated {
+					sf64, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, int64(sf64))
+				}
+				arg.RepeatedSfixed64 = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_bool"]
+				arr := make([]bool, 0, len(repeated))
+				for _, v := range repeated {
+					b, err := strconv.ParseBool(v)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, b)
+				}
+				arg.RepeatedBool = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_string"]
+				arr := make([]string, 0, len(repeated))
+				for _, v := range repeated {
+					arr = append(arr, v)
+				}
+				arg.RepeatedString = arr
+			}
+			{
+				repeated := r.URL.Query()["repeated_bytes"]
+				arr := make([][]byte, 0, len(repeated))
+				for _, v := range repeated {
+					b, err := base64.StdEncoding.DecodeString(v)
+					if err != nil {
+						cb(ctx, w, r, nil, nil, err)
+						return
+					}
+					arr = append(arr, b)
+				}
+				arg.RepeatedBytes = arr
 			}
 		}
 
