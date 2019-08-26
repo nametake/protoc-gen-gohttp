@@ -6,11 +6,13 @@ package httprulepb
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
@@ -168,8 +170,111 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 		arg := &AllPatternRequest{}
 		contentType := r.Header.Get("Content-Type")
 		if r.Method == http.MethodGet {
-			var err error
+			{
+				d, err := strconv.ParseFloat(r.URL.Query().Get("double"), 64)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Double = d
+			}
+			{
+				f, err := strconv.ParseFloat(r.URL.Query().Get("float"), 32)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Float = float32(f)
+			}
+			{
+				i32, err := strconv.ParseInt(r.URL.Query().Get("int32"), 10, 32)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Int32 = int32(i32)
+			}
+			{
+				i64, err := strconv.ParseInt(r.URL.Query().Get("int64"), 10, 64)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Int64 = i64
+			}
+			{
+				ui32, err := strconv.ParseUint(r.URL.Query().Get("uint32"), 10, 32)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Uint32 = uint32(ui32)
+			}
+			{
+				ui64, err := strconv.ParseUint(r.URL.Query().Get("uint64"), 10, 64)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Uint64 = uint64(ui64)
+			}
+			{
+				f32, err := strconv.ParseUint(r.URL.Query().Get("fixed32"), 10, 32)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Fixed32 = uint32(f32)
+			}
+			{
+				f64, err := strconv.ParseUint(r.URL.Query().Get("fixed64"), 10, 64)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Fixed64 = uint64(f64)
+			}
+			{
+				sf32, err := strconv.ParseInt(r.URL.Query().Get("sfixed32"), 10, 32)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Sfixed32 = int32(sf32)
+			}
+			{
+				sf64, err := strconv.ParseInt(r.URL.Query().Get("sfixed64"), 10, 64)
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Sfixed64 = int64(sf64)
+			}
+			{
+				b, err := strconv.ParseBool(r.URL.Query().Get("bool"))
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Bool = b
+			}
 			arg.String_ = r.URL.Query().Get("string")
+			{
+				b, err := strconv.ParseBool(r.URL.Query().Get("bool"))
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Bool = b
+			}
+			{
+				b, err := base64.StdEncoding.DecodeString(r.URL.Query().Get("bytes"))
+				if err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+				arg.Bytes = b
+			}
 		}
 
 		ret, err := h.srv.AllPattern(ctx, arg)
