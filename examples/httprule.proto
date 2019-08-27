@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package helloworld;
+
+option go_package = "main";
+
+import "google/api/annotations.proto";
+
+service Messaging {
+  rpc GetMessage(GetMessageRequest) returns (GetMessageResponse) {
+    option (google.api.http).get = "/v1/messages/{message_id}";
+  }
+}
+
+message GetMessageRequest {
+  string message_id = 1;
+  repeated string tags = 2;
+}
+
+message GetMessageResponse {
+  string message_id = 1;
+  string message = 2;
+  repeated string tags = 4;
+}

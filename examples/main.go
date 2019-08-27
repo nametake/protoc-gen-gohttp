@@ -27,13 +27,6 @@ func (s *EchoGreeterServer) SayHello(ctx context.Context, req *HelloRequest) (*H
 	}, nil
 }
 
-func (s *EchoGreeterServer) Echo(ctx context.Context, req *EchoRequest) (*EchoReply, error) {
-	return &EchoReply{
-		MessageId: req.MessageId,
-		Msg:       req.Msg,
-	}, nil
-}
-
 func main() {
 	// Create the GreeterServer.
 	srv := &EchoGreeterServer{}
