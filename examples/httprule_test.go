@@ -24,7 +24,25 @@ func TestMessaging_GetMessage(t *testing.T) {
 		wantErr bool
 		want    *want
 	}{
-		// TODO: Add test cases.
+		{
+			name: "GET method and Content-Type JSON",
+			reqFunc: func() (*http.Request, error) {
+				req := httptest.NewRequest(http.MethodGet, `/v1/messages/abc1234?message=hello&tags=a&tags=b`, nil)
+				req.Header.Set("Content-Type", "application/json")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &want{
+				Method: http.MethodGet,
+				Path:   "/v1/messages/{message_id}",
+				Resp: &GetMessageResponse{
+					MessageId: "abc1234",
+					Message:   "Hello World!",
+					Tags:      []string{"a", "b"},
+				},
+			},
+		},
 	}
 
 	handler := NewMessagingHTTPConverter(&Messaging{})
