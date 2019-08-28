@@ -224,3 +224,8 @@ NOT SUPPORTED
 
 -	Streaming API
 	-	Not create a convert method.
+-	HttpRule field below
+	-	selector
+	-	additional_bindings
+	-	custom
+-	`map` type query string
