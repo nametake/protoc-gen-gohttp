@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package httprule;
+
+option go_package = "httprulepb";
+
+import "google/api/annotations.proto";
+
+service AllPattern {
+  rpc AllPattern(AllPatternRequest) returns (AllPatternResponse) {
+    option (google.api.http).get = "/all/pattern";
+  }
+}
+
+message AllPatternRequest {
+  double double = 1;
+  float float = 2;
+  int32 int32 = 3;
+  int64 int64 = 4;
+  uint32 uint32 = 5;
+  uint64 uint64 = 6;
+  fixed32 fixed32 = 7;
+  fixed64 fixed64 = 8;
+  sfixed32 sfixed32 = 9;
+  sfixed64 sfixed64 = 10;
+  bool bool = 11;
+  string string = 12;
+  bytes bytes = 14;
+  repeated double repeated_double = 15;
+  repeated float repeated_float = 16;
+  repeated int32 repeated_int32 = 17;
+  repeated int64 repeated_int64 = 18;
+  repeated uint32 repeated_uint32 = 19;
+  repeated uint64 repeated_uint64 = 20;
+  repeated fixed32 repeated_fixed32 = 21;
+  repeated fixed64 repeated_fixed64 = 22;
+  repeated sfixed32 repeated_sfixed32 = 23;
+  repeated sfixed64 repeated_sfixed64 = 24;
+  repeated bool repeated_bool = 25;
+  repeated string repeated_string = 26;
+  repeated bytes repeated_bytes = 28;
+}
+
+message AllPatternResponse {}

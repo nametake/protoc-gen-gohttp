@@ -8,11 +8,17 @@ package {{ .Pkg }}
 import (
 	"bytes"
 	"context"
+	{{ if .IsImportBase64 -}}
+	"encoding/base64"
+	{{ end -}}
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	{{ if .IsImportStrConv -}}
+	"strconv"
+	{{ end -}}
 	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
@@ -146,5 +152,418 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 {{ end -}}
 func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}WithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
 	return "{{ $service.Name }}", "{{ $method.Name }}", h.{{ $method.Name }}(cb)
-}{{ end }}{{ end }}
-`
+}
+
+{{ if $method.HTTPRule -}}
+func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+	if cb == nil {
+		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				p := status.New(codes.Unknown, err.Error()).Proto()
+				switch r.Header.Get("Content-Type") {
+				case "application/protobuf", "application/x-protobuf":
+					buf, err := proto.Marshal(p)
+					if err != nil {
+						return
+					}
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+						return
+					}
+				case "application/json":
+					if err := json.NewEncoder(w).Encode(p); err != nil {
+						return
+					}
+				default:
+				}
+			}
+		}
+	}
+	return {{ $method.HTTPRule.GetMethod }}, "{{ $method.HTTPRule.Pattern }}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		arg := &{{ $method.Arg }}{}
+		contentType := r.Header.Get("Content-Type")
+		{{ if $method.GetQueryParams -}}
+		if r.Method == http.MethodGet {
+		{{ range $k, $queryParam := $method.GetQueryParams -}}
+			{{ template "queryString" $queryParam -}}
+		{{ end -}}
+		}
+		{{ else -}}
+		if r.Method != http.MethodGet {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+
+			switch contentType {
+			case "application/protobuf", "application/x-protobuf":
+				if err := proto.Unmarshal(body, arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			case "application/json":
+				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			default:
+				w.WriteHeader(http.StatusUnsupportedMediaType)
+				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+		{{ end }}
+
+		{{ if $method.HTTPRule.Variables -}}
+		p := strings.Split(r.URL.Path, "/")
+		{{ range $j, $variable := $method.HTTPRule.Variables -}}
+		arg.{{ $variable.GetPath }} = p[{{ $variable.Index }}]
+		{{ end -}}
+		{{ end }}
+
+		ret, err := h.srv.{{ $method.Name }}(ctx, arg)
+		if err != nil {
+			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == ""{
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		switch accept {
+		case "application/protobuf", "application/x-protobuf":
+			buf, err := proto.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+		case "application/json":
+			m := jsonpb.Marshaler{
+				EnumsAsInts:  true,
+				EmitDefaults: true,
+			}
+			if err := m.Marshal(w, ret); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+		default:
+			w.WriteHeader(http.StatusUnsupportedMediaType)
+			_, err := fmt.Fprintf(w, "Unsupported Accept: %s", accept)
+			cb(ctx, w, r, arg, ret, err)
+			return
+		}
+		cb(ctx, w, r, arg, ret, nil)
+	})
+}
+{{ end -}}
+{{ end -}}
+{{ end -}}
+` + queryParamsTemplate
+
+const queryParamsTemplate = `{{ define "queryString" -}}
+{{ if eq .QueryType "DOUBLE" -}}
+{
+	d, err := strconv.ParseFloat(r.URL.Query().Get("{{ .Key }}"), 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = d
+}
+{{ else if eq .QueryType "FLOAT" -}}
+{
+	f, err := strconv.ParseFloat(r.URL.Query().Get("{{ .Key }}"), 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = float32(f)
+}
+{{ else if eq .QueryType "INT32" -}}
+{
+	i32, err := strconv.ParseInt(r.URL.Query().Get("{{ .Key }}"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = int32(i32)
+}
+{{ else if eq .QueryType "INT64" -}}
+{
+	i64, err := strconv.ParseInt(r.URL.Query().Get("{{ .Key }}"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = i64
+}
+{{ else if eq .QueryType "UINT32" -}}
+{
+	ui32, err := strconv.ParseUint(r.URL.Query().Get("{{ .Key }}"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = uint32(ui32)
+}
+{{ else if eq .QueryType "UINT64" -}}
+{
+	ui64, err := strconv.ParseUint(r.URL.Query().Get("{{ .Key }}"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = uint64(ui64)
+}
+{{ else if eq .QueryType "FIXED32" -}}
+{
+	f32, err := strconv.ParseUint(r.URL.Query().Get("{{ .Key }}"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = uint32(f32)
+}
+{{ else if eq .QueryType "FIXED64" -}}
+{
+	f64, err := strconv.ParseUint(r.URL.Query().Get("{{ .Key }}"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = uint64(f64)
+}
+{{ else if eq .QueryType "SFIXED32" -}}
+{
+	sf32, err := strconv.ParseInt(r.URL.Query().Get("{{ .Key }}"), 10, 32)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = int32(sf32)
+}
+{{ else if eq .QueryType "SFIXED64" -}}
+{
+	sf64, err := strconv.ParseInt(r.URL.Query().Get("{{ .Key }}"), 10, 64)
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = int64(sf64)
+}
+{{ else if eq .QueryType "BOOL" -}}
+{
+	b, err := strconv.ParseBool(r.URL.Query().Get("{{ .Key }}"))
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = b
+}
+{{ else if eq .QueryType "STRING" -}}
+{
+	arg.{{ .GetPath }} = r.URL.Query().Get("{{ .Key }}")
+}
+{{ else if eq .QueryType "BYTES" -}}
+{
+	b, err := base64.StdEncoding.DecodeString(r.URL.Query().Get("{{ .Key }}"))
+	if err != nil {
+		cb(ctx, w, r, nil, nil, err)
+		return
+	}
+	arg.{{ .GetPath }} = b
+}
+{{ else if eq .QueryType "REPEATED_DOUBLE" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]float64, 0, len(repeated))
+	for _, v := range repeated {
+		d, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, d)
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_FLOAT" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]float32, 0, len(repeated))
+	for _, v := range repeated {
+		f, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, float32(f))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_INT32" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]int32, 0, len(repeated))
+	for _, v := range repeated {
+		i32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int32(i32))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_INT64" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]int64, 0, len(repeated))
+	for _, v := range repeated {
+		i64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int64(i64))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_UINT32" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]uint32, 0, len(repeated))
+	for _, v := range repeated {
+		ui32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint32(ui32))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_UINT64" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]uint64, 0, len(repeated))
+	for _, v := range repeated {
+		ui64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint64(ui64))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_FIXED32" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]uint32, 0, len(repeated))
+	for _, v := range repeated {
+		f32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint32(f32))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_FIXED64" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]uint64, 0, len(repeated))
+	for _, v := range repeated {
+		f64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, uint64(f64))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_SFIXED32" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]int32, 0, len(repeated))
+	for _, v := range repeated {
+		sf32, err := strconv.ParseFloat(v, 32)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int32(sf32))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_SFIXED64" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]int64, 0, len(repeated))
+	for _, v := range repeated {
+		sf64, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, int64(sf64))
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_BOOL" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]bool, 0, len(repeated))
+	for _, v := range repeated {
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, b)
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_STRING" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([]string, 0, len(repeated))
+	for _, v := range repeated {
+		arr = append(arr, v)
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ else if eq .QueryType "REPEATED_BYTES" -}}
+{
+	repeated := r.URL.Query()["{{ .Key }}"]
+	arr := make([][]byte, 0, len(repeated))
+	for _, v := range repeated {
+		b, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			cb(ctx, w, r, nil, nil, err)
+			return
+		}
+		arr = append(arr, b)
+	}
+	arg.{{ .GetPath }} = arr
+}
+{{ end -}}
+{{ end -}}`
