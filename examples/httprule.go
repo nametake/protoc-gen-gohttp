@@ -15,3 +15,13 @@ func (m *Messaging) GetMessage(ctx context.Context, req *GetMessageRequest) (*Ge
 		Tags:      req.Tags,
 	}, nil
 }
+
+func (m *Messaging) UpdateMessage(ctx context.Context, req *UpdateMessageRequest) (*UpdateMessageResponse, error) {
+	return &UpdateMessageResponse{
+		MessageId: req.MessageId,
+		Sub: &SubMessage{
+			Subfield: req.Sub.Subfield,
+		},
+		Message: "Hello World!",
+	}, nil
+}
