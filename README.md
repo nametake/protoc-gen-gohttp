@@ -152,6 +152,66 @@ func restPath(service, method string, hf http.HandlerFunc) (string, http.Handler
 }
 ```
 
+#### HTTPRule
+
+protoc-gen-gohttp supports [google.api.HttpRule](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#httprule) option.
+
+When the Service is defined using HttpRule, Converter implements the `{RpcName}HTTPRule` method. `{RpcName}HTTPRule` method returns Request Method, Path and http.HandlerFunc.
+
+In the following example, Converter implements `GetMessageHTTPRule`. `GetMessageHTTPRule` returns `http.MethodGet`, `"/v1/messages/{message_id}"` and http.HandlerFunc.
+
+```proto
+syntax = "proto3";
+
+package example;
+
+option go_package = "main";
+
+import "google/api/annotations.proto";
+
+service Messaging {
+  rpc GetMessage(GetMessageRequest) returns (GetMessageResponse) {
+    option (google.api.http).get = "/v1/messages/{message_id}";
+  }
+}
+
+message GetMessageRequest {
+  string message_id = 1;
+  repeated string tags = 2;
+}
+
+message GetMessageResponse {
+  string message_id = 1;
+  string message = 2;
+  repeated string tags = 4;
+}
+```
+
+`{RpcName}HTTPRule` method is intended for use with HTTP libraries like [go-chi/chi](https://github.com/go-chi/chi) and [gorilla/mux](https://github.com/gorilla/mux) as follows:
+
+```go
+func main() {
+	conv := NewMessagingHTTPConverter(&Messaging{})
+	r := chi.NewRouter()
+
+	r.Method(conv.GetMessageHTTPRule(nil))
+
+	log.Fatal(http.ListenAndServe(":8080", r))
+}
+
+type Messaging struct{}
+
+func (m *Messaging) GetMessage(ctx context.Context, req *GetMessageRequest) (*GetMessageResponse, error) {
+	return &GetMessageResponse{
+		MessageId: req.MessageId,
+		Message:   "Hello World!",
+		Tags:      req.Tags,
+	}, nil
+}
+```
+
+protoc-gen-gohttp parses Get Method according to [google.api.HttpRule](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#httprule) option. Therefore, you can pass values to the server in the above example with query string like `/v1/messages/abc1234?message=hello&tags=a&tags=b`.
+
 Callback
 --------
 
@@ -164,4 +224,3 @@ NOT SUPPORTED
 
 -	Streaming API
 	-	Not create a convert method.
--	Protocol Buffers Options
