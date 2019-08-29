@@ -11,7 +11,7 @@ type Messaging struct{}
 func (m *Messaging) GetMessage(ctx context.Context, req *GetMessageRequest) (*GetMessageResponse, error) {
 	return &GetMessageResponse{
 		MessageId: req.MessageId,
-		Message:   "Hello World!",
+		Message:   req.Message,
 		Tags:      req.Tags,
 	}, nil
 }

@@ -40,7 +40,7 @@ func TestMessaging_GetMessage(t *testing.T) {
 				Path:   "/v1/messages/{message_id}",
 				Resp: &GetMessageResponse{
 					MessageId: "abc1234",
-					Message:   "Hello World!",
+					Message:   "hello",
 					Tags:      []string{"a", "b"},
 				},
 			},
