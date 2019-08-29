@@ -240,7 +240,7 @@ RPC arguments and return values, and errors may be nil. Here's when nil is passe
 
 You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is ignored.
 
-If nil is set, errors are always handled as InternalServerError.
+If nil is passed to callback, the error is always handled as an InternalServerError.
 
 NOT SUPPORTED
 -------------
