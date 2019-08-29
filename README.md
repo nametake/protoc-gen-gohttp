@@ -225,6 +225,19 @@ When you actually execute the above server and execute `curl -H "Content-Type: a
 Callback
 --------
 
+Callback is called when the end of the generated code is reached without error or when an error occurs.
+
+Callback is passed HTTP context and http.ResponseWriter and http.Request, RPC arguments and return values, and error.
+
+RPC arguments and return values, and errors may be nil. Here's when nil is passed:
+
+| Timing                                  | RPC argument | RPC return value | error |
+|-----------------------------------------|--------------|------------------|-------|
+| When an error occurs after calling RPC  | nil          | nil              | err   |
+| When RPC returns an error               | arg          | nil              | err   |
+| When an error occurs before calling RPC | arg          | ret              | err   |
+| When no error occurred                  | arg          | ret              | nil   |
+
 You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is ignored.
 
 If nil is set, errors are always handled as InternalServerError.
