@@ -42,7 +42,7 @@ func main() {
 	// In this case, the strings 'Greeter' and 'SayHello' are returned.
 	http.Handle(restPath(conv.SayHelloWithName(logCallback)))
 
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // logCallback is called when exiting ServeHTTP

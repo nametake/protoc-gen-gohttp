@@ -117,7 +117,7 @@ func main() {
 	// In this case, the strings 'Greeter' and 'SayHello' are returned.
 	http.Handle(restPath(conv.SayHelloWithName(logCallback)))
 
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // logCallback is called when exiting ServeHTTP
@@ -190,6 +190,16 @@ message GetMessageResponse {
 `{RpcName}HTTPRule` method is intended for use with HTTP libraries like [go-chi/chi](https://github.com/go-chi/chi) and [gorilla/mux](https://github.com/gorilla/mux) as follows:
 
 ```go
+type Messaging struct{}
+
+func (m *Messaging) GetMessage(ctx context.Context, req *GetMessageRequest) (*GetMessageResponse, error) {
+	return &GetMessageResponse{
+		MessageId: req.MessageId,
+		Message:   req.Message,
+		Tags:      req.Tags,
+	}, nil
+}
+
 func main() {
 	conv := NewMessagingHTTPConverter(&Messaging{})
 	r := chi.NewRouter()
@@ -198,19 +208,19 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
-
-type Messaging struct{}
-
-func (m *Messaging) GetMessage(ctx context.Context, req *GetMessageRequest) (*GetMessageResponse, error) {
-	return &GetMessageResponse{
-		MessageId: req.MessageId,
-		Message:   "Hello World!",
-		Tags:      req.Tags,
-	}, nil
-}
 ```
 
 protoc-gen-gohttp parses Get Method according to [google.api.HttpRule](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#httprule) option. Therefore, you can pass values to the server in the above example with query string like `/v1/messages/abc1234?message=hello&tags=a&tags=b`.
+
+When you actually execute the above server and execute `curl -H "Content-Type: application/json" "localhost:8080/v1/messages/abc1234?message=hello&tags=a&tags=b"`, the following JOSN is returned.
+
+```json
+{
+  "messageId": "abc1234",
+  "message": "hello",
+  "tags": ["a", "b"]
+}
+```
 
 Callback
 --------
