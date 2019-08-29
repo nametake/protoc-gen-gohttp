@@ -169,6 +169,9 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 		contentType := r.Header.Get("Content-Type")
 		if r.Method == http.MethodGet {
 			{
+				arg.Message = r.URL.Query().Get("message")
+			}
+			{
 				repeated := r.URL.Query()["tags"]
 				arr := make([]string, 0, len(repeated))
 				for _, v := range repeated {

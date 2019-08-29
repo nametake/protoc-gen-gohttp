@@ -117,7 +117,7 @@ func main() {
 	// In this case, the strings 'Greeter' and 'SayHello' are returned.
 	http.Handle(restPath(conv.SayHelloWithName(logCallback)))
 
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // logCallback is called when exiting ServeHTTP
@@ -190,6 +190,16 @@ message GetMessageResponse {
 `{RpcName}HTTPRule` method is intended for use with HTTP libraries like [go-chi/chi](https://github.com/go-chi/chi) and [gorilla/mux](https://github.com/gorilla/mux) as follows:
 
 ```go
+type Messaging struct{}
+
+func (m *Messaging) GetMessage(ctx context.Context, req *GetMessageRequest) (*GetMessageResponse, error) {
+	return &GetMessageResponse{
+		MessageId: req.MessageId,
+		Message:   req.Message,
+		Tags:      req.Tags,
+	}, nil
+}
+
 func main() {
 	conv := NewMessagingHTTPConverter(&Messaging{})
 	r := chi.NewRouter()
@@ -198,26 +208,39 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
-
-type Messaging struct{}
-
-func (m *Messaging) GetMessage(ctx context.Context, req *GetMessageRequest) (*GetMessageResponse, error) {
-	return &GetMessageResponse{
-		MessageId: req.MessageId,
-		Message:   "Hello World!",
-		Tags:      req.Tags,
-	}, nil
-}
 ```
 
 protoc-gen-gohttp parses Get Method according to [google.api.HttpRule](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#httprule) option. Therefore, you can pass values to the server in the above example with query string like `/v1/messages/abc1234?message=hello&tags=a&tags=b`.
 
+When you actually execute the above server and execute `curl -H "Content-Type: application/json" "localhost:8080/v1/messages/abc1234?message=hello&tags=a&tags=b"`, the following JOSN is returned.
+
+```json
+{
+  "messageId": "abc1234",
+  "message": "hello",
+  "tags": ["a", "b"]
+}
+```
+
 Callback
 --------
 
+Callback is called when the end of the generated code is reached without error or when an error occurs.
+
+Callback is passed HTTP context and http.ResponseWriter and http.Request, RPC arguments and return values, and error.
+
+RPC arguments and return values, and errors may be nil. Here's when nil is passed:
+
+| Timing                                  | RPC argument | RPC return value | error |
+|-----------------------------------------|--------------|------------------|-------|
+| When an error occurs after calling RPC  | nil          | nil              | err   |
+| When RPC returns an error               | arg          | nil              | err   |
+| When an error occurs before calling RPC | arg          | ret              | err   |
+| When no error occurred                  | arg          | ret              | nil   |
+
 You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is ignored.
 
-If nil is set, errors are always handled as InternalServerError.
+If nil is passed to callback, the error is always handled as an InternalServerError.
 
 NOT SUPPORTED
 -------------
@@ -225,7 +248,7 @@ NOT SUPPORTED
 -	Streaming API
 	-	Not create a convert method.
 -	HttpRule field below
-	-	selector
-	-	additional_bindings
-	-	custom
+	-	[selector](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.string.google.api.HttpRule.selector)
+	-	[additional_bindings](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.repeated.google.api.HttpRule.google.api.HttpRule.additional_bindings)
+	-	[custom](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.google.api.CustomHttpPattern.google.api.HttpRule.custom)
 -	`map` type query string
