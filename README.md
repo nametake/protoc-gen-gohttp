@@ -233,9 +233,9 @@ RPC arguments and return values, and errors may be nil. Here's when nil is passe
 
 | Timing                                  | RPC argument | RPC return value | error |
 |-----------------------------------------|--------------|------------------|-------|
-| When an error occurs after calling RPC  | nil          | nil              | err   |
+| When an error occurs before calling RPC | nil          | nil              | err   |
 | When RPC returns an error               | arg          | nil              | err   |
-| When an error occurs before calling RPC | arg          | ret              | err   |
+| When an error occurs after calling RPC  | arg          | ret              | err   |
 | When no error occurred                  | arg          | ret              | nil   |
 
 You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is ignored.
