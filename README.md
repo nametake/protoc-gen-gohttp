@@ -225,7 +225,7 @@ NOT SUPPORTED
 -	Streaming API
 	-	Not create a convert method.
 -	HttpRule field below
-	-	selector
-	-	additional_bindings
-	-	custom
+	-	[selector](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.string.google.api.HttpRule.selector)
+	-	[additional_bindings](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.repeated.google.api.HttpRule.google.api.HttpRule.additional_bindings)
+	-	[custom](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.google.api.CustomHttpPattern.google.api.HttpRule.custom)
 -	`map` type query string
