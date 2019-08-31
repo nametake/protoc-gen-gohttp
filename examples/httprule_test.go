@@ -45,6 +45,25 @@ func TestMessaging_GetMessage(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "GET method and Content-Type Protobuf",
+			reqFunc: func() (*http.Request, error) {
+				req := httptest.NewRequest(http.MethodGet, `/v1/messages/foobar?message=goodbye&tags=one&tags=two`, nil)
+				req.Header.Set("Content-Type", "application/protobuf")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &want{
+				Method: http.MethodGet,
+				Path:   "/v1/messages/{message_id}",
+				Resp: &GetMessageResponse{
+					MessageId: "foobar",
+					Message:   "goodbye",
+					Tags:      []string{"one", "two"},
+				},
+			},
+		},
 	}
 
 	handler := NewMessagingHTTPConverter(&Messaging{})
@@ -61,22 +80,20 @@ func TestMessaging_GetMessage(t *testing.T) {
 			method, path, h := handler.GetMessageHTTPRule(tt.cb)
 			h.ServeHTTP(rec, req)
 
-			// Check in callback
-			if tt.wantErr {
-				return
-			}
-
-			resp := &GetMessageResponse{}
-			switch req.Header.Get("Content-Type") {
-			case "application/protobuf":
-				if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
-					t.Fatal(err)
+			var resp *GetMessageResponse
+			if !tt.wantErr {
+				resp = &GetMessageResponse{}
+				switch req.Header.Get("Content-Type") {
+				case "application/protobuf":
+					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
+						t.Fatal(err)
+					}
+				case "application/json":
+					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+						t.Fatal(err)
+					}
+				default:
 				}
-			case "application/json":
-				if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
-					t.Fatal(err)
-				}
-			default:
 			}
 			if diff := cmp.Diff(&want{Method: method, Path: path, Resp: resp}, tt.want); diff != "" {
 				t.Errorf("%s", diff)
