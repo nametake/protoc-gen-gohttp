@@ -130,7 +130,13 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				default:
 				}
 			}
-			if diff := cmp.Diff(&want{StatusCode: rec.Code, Resp: resp}, tt.want); diff != "" {
+
+			actual := &want{
+				StatusCode: rec.Code,
+				Resp:       resp,
+			}
+
+			if diff := cmp.Diff(actual, tt.want); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})

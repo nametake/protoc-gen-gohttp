@@ -15,9 +15,10 @@ import (
 
 func TestMessaging_GetMessage(t *testing.T) {
 	type want struct {
-		Method string
-		Path   string
-		Resp   *GetMessageResponse
+		StatusCode int
+		Method     string
+		Path       string
+		Resp       *GetMessageResponse
 	}
 	tests := []struct {
 		name    string
@@ -36,8 +37,9 @@ func TestMessaging_GetMessage(t *testing.T) {
 			cb:      nil,
 			wantErr: false,
 			want: &want{
-				Method: http.MethodGet,
-				Path:   "/v1/messages/{message_id}",
+				StatusCode: http.StatusOK,
+				Method:     http.MethodGet,
+				Path:       "/v1/messages/{message_id}",
 				Resp: &GetMessageResponse{
 					MessageId: "abc1234",
 					Message:   "hello",
@@ -55,8 +57,9 @@ func TestMessaging_GetMessage(t *testing.T) {
 			cb:      nil,
 			wantErr: false,
 			want: &want{
-				Method: http.MethodGet,
-				Path:   "/v1/messages/{message_id}",
+				StatusCode: http.StatusOK,
+				Method:     http.MethodGet,
+				Path:       "/v1/messages/{message_id}",
 				Resp: &GetMessageResponse{
 					MessageId: "foobar",
 					Message:   "goodbye",
@@ -95,7 +98,15 @@ func TestMessaging_GetMessage(t *testing.T) {
 				default:
 				}
 			}
-			if diff := cmp.Diff(&want{Method: method, Path: path, Resp: resp}, tt.want); diff != "" {
+
+			actual := &want{
+				StatusCode: rec.Code,
+				Method:     method,
+				Path:       path,
+				Resp:       resp,
+			}
+
+			if diff := cmp.Diff(actual, tt.want); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})
@@ -104,9 +115,10 @@ func TestMessaging_GetMessage(t *testing.T) {
 
 func TestMessaging_UpdateMessage(t *testing.T) {
 	type want struct {
-		Method string
-		Path   string
-		Resp   *UpdateMessageResponse
+		StatusCode int
+		Method     string
+		Path       string
+		Resp       *UpdateMessageResponse
 	}
 	tests := []struct {
 		name    string
@@ -116,7 +128,7 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 		want    *want
 	}{
 		{
-			name: "GET method and Content-Type JSON",
+			name: "PUT method and Content-Type JSON",
 			reqFunc: func() (*http.Request, error) {
 				p := &UpdateMessageRequest{
 					MessageId: "abc1234",
@@ -138,8 +150,9 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 			cb:      nil,
 			wantErr: false,
 			want: &want{
-				Method: http.MethodPut,
-				Path:   "/v1/messages/{message_id}/{sub.subfield}",
+				StatusCode: http.StatusOK,
+				Method:     http.MethodPut,
+				Path:       "/v1/messages/{message_id}/{sub.subfield}",
 				Resp: &UpdateMessageResponse{
 					MessageId: "abc1234",
 					Sub: &SubMessage{
@@ -165,24 +178,30 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 			method, path, h := handler.UpdateMessageHTTPRule(tt.cb)
 			h.ServeHTTP(rec, req)
 
-			// Check in callback
-			if tt.wantErr {
-				return
+			var resp *UpdateMessageResponse
+			if !tt.wantErr {
+				resp = &UpdateMessageResponse{}
+				switch req.Header.Get("Content-Type") {
+				case "application/protobuf":
+					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
+						t.Fatal(err)
+					}
+				case "application/json":
+					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+						t.Fatal(err)
+					}
+				default:
+				}
 			}
 
-			resp := &UpdateMessageResponse{}
-			switch req.Header.Get("Content-Type") {
-			case "application/protobuf":
-				if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
-					t.Fatal(err)
-				}
-			case "application/json":
-				if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
-					t.Fatal(err)
-				}
-			default:
+			actual := &want{
+				StatusCode: rec.Code,
+				Method:     method,
+				Path:       path,
+				Resp:       resp,
 			}
-			if diff := cmp.Diff(&want{Method: method, Path: path, Resp: resp}, tt.want); diff != "" {
+
+			if diff := cmp.Diff(actual, tt.want); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})
