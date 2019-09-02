@@ -30,7 +30,7 @@ func TestMessaging_GetMessage(t *testing.T) {
 		{
 			name: "GET method and Content-Type JSON",
 			reqFunc: func() (*http.Request, error) {
-				req := httptest.NewRequest(http.MethodGet, `/v1/messages/abc1234?message=hello&tags=a&tags=b`, nil)
+				req := httptest.NewRequest(http.MethodGet, "/v1/messages/abc1234?message=hello&tags=a&tags=b", nil)
 				req.Header.Set("Content-Type", "application/json")
 				return req, nil
 			},
@@ -50,7 +50,7 @@ func TestMessaging_GetMessage(t *testing.T) {
 		{
 			name: "GET method and Content-Type Protobuf",
 			reqFunc: func() (*http.Request, error) {
-				req := httptest.NewRequest(http.MethodGet, `/v1/messages/foobar?message=goodbye&tags=one&tags=two`, nil)
+				req := httptest.NewRequest(http.MethodGet, "/v1/messages/foobar?message=goodbye&tags=one&tags=two", nil)
 				req.Header.Set("Content-Type", "application/protobuf")
 				return req, nil
 			},
@@ -131,10 +131,6 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 			name: "PUT method and Content-Type JSON",
 			reqFunc: func() (*http.Request, error) {
 				p := &UpdateMessageRequest{
-					MessageId: "abc1234",
-					Sub: &SubMessage{
-						Subfield: "submsg",
-					},
 					Message: "Hello World!",
 				}
 
@@ -143,8 +139,40 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 					return nil, err
 				}
 
-				req := httptest.NewRequest(http.MethodPut, `/v1/messages/abc1234/submsg`, body)
+				req := httptest.NewRequest(http.MethodPut, "/v1/messages/abc1234/submsg", body)
 				req.Header.Set("Content-Type", "application/json")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &want{
+				StatusCode: http.StatusOK,
+				Method:     http.MethodPut,
+				Path:       "/v1/messages/{message_id}/{sub.subfield}",
+				Resp: &UpdateMessageResponse{
+					MessageId: "abc1234",
+					Sub: &SubMessage{
+						Subfield: "submsg",
+					},
+					Message: "Hello World!",
+				},
+			},
+		},
+		{
+			name: "PUT method and Content-Type Protobuf",
+			reqFunc: func() (*http.Request, error) {
+				p := &UpdateMessageRequest{
+					Message: "hello world!",
+				}
+
+				buf, err := proto.Marshal(p)
+				if err != nil {
+					return nil, err
+				}
+				body := bytes.NewBuffer(buf)
+
+				req := httptest.NewRequest(http.MethodPut, "/v1/messages/foobar/sub", body)
+				req.Header.Set("Content-Type", "application/protobuf")
 				return req, nil
 			},
 			cb:      nil,

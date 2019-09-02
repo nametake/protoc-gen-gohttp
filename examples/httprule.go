@@ -22,6 +22,6 @@ func (m *Messaging) UpdateMessage(ctx context.Context, req *UpdateMessageRequest
 		Sub: &SubMessage{
 			Subfield: req.Sub.Subfield,
 		},
-		Message: "Hello World!",
+		Message: req.Message,
 	}, nil
 }
