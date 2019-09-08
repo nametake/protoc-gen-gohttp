@@ -182,11 +182,11 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 				Method:     http.MethodPut,
 				Path:       "/v1/messages/{message_id}/{sub.subfield}",
 				Resp: &UpdateMessageResponse{
-					MessageId: "abc1234",
+					MessageId: "foobar",
 					Sub: &SubMessage{
-						Subfield: "submsg",
+						Subfield: "sub",
 					},
-					Message: "Hello World!",
+					Message: "hello world!",
 				},
 			},
 		},
