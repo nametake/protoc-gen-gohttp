@@ -73,6 +73,22 @@ func (t *targetFile) IsImportBase64() bool {
 	return false
 }
 
+func (t *targetFile) IsImportReflect() bool {
+	for _, service := range t.Services {
+		for _, method := range service.Methods {
+			if method.HTTPRule == nil {
+				continue
+			}
+			for _, variable := range method.HTTPRule.Variables {
+				if len(strings.Split(variable.Path, ".")) >= 2 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 type targetService struct {
 	Name    string
 	Methods []*targetMethod

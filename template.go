@@ -16,6 +16,9 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	{{ if .IsImportReflect -}}
+	"reflect"
+	{{ end -}}
 	{{ if .IsImportStrConv -}}
 	"strconv"
 	{{ end -}}
