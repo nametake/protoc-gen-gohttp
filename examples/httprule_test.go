@@ -235,3 +235,134 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestMessaging_CreateMessage(t *testing.T) {
+	type want struct {
+		StatusCode int
+		Method     string
+		Path       string
+		Resp       *CreateMessageResponse
+	}
+	tests := []struct {
+		name    string
+		reqFunc func() (*http.Request, error)
+		cb      func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
+		wantErr bool
+		want    *want
+	}{
+		{
+			name: "POST method and Content-Type JSON",
+			reqFunc: func() (*http.Request, error) {
+				p := &CreateMessageRequest{
+					Opt: "option1",
+				}
+
+				body := &bytes.Buffer{}
+				if err := json.NewEncoder(body).Encode(p); err != nil {
+					return nil, err
+				}
+
+				req := httptest.NewRequest(http.MethodPut, "/v1/messages/abc1234/subsub/submsg", body)
+				req.Header.Set("Content-Type", "application/json")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &want{
+				StatusCode: http.StatusOK,
+				Method:     http.MethodPut,
+				Path:       "/v1/messages/{message_id}/{msg.sub.subfield}/{sub.subfield}",
+				Resp: &CreateMessageResponse{
+					MessageId: "abc1234",
+					Sub: &SubMessage{
+						Subfield: "submsg",
+					},
+					Msg: &CreateMessageResponse_Message{
+						Sub: &SubMessage{
+							Subfield: "subsub",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "POST method and Content-Type Protobuf",
+			reqFunc: func() (*http.Request, error) {
+				p := &CreateMessageRequest{
+					Opt: "option2",
+				}
+
+				buf, err := proto.Marshal(p)
+				if err != nil {
+					return nil, err
+				}
+				body := bytes.NewBuffer(buf)
+
+				req := httptest.NewRequest(http.MethodPut, "/v1/messages/foobar/Subsub/sub", body)
+				req.Header.Set("Content-Type", "application/protobuf")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &want{
+				StatusCode: http.StatusOK,
+				Method:     http.MethodPut,
+				Path:       "/v1/messages/{message_id}/{msg.sub.subfield}/{sub.subfield}",
+				Resp: &CreateMessageResponse{
+					MessageId: "foobar",
+					Sub: &SubMessage{
+						Subfield: "sub",
+					},
+					Msg: &CreateMessageResponse_Message{
+						Sub: &SubMessage{
+							Subfield: "subsub",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	handler := NewMessagingHTTPConverter(&Messaging{})
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := tt.reqFunc()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rec := httptest.NewRecorder()
+			method, path, h := handler.CreateMessageHTTPRule(tt.cb)
+			h.ServeHTTP(rec, req)
+
+			var resp *CreateMessageResponse
+			if !tt.wantErr {
+				resp = &CreateMessageResponse{}
+				switch req.Header.Get("Content-Type") {
+				case "application/protobuf":
+					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
+						t.Fatal(err)
+					}
+				case "application/json":
+					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+						t.Fatal(err)
+					}
+				default:
+				}
+			}
+
+			actual := &want{
+				StatusCode: rec.Code,
+				Method:     method,
+				Path:       path,
+				Resp:       resp,
+			}
+
+			if diff := cmp.Diff(actual, tt.want); diff != "" {
+				t.Errorf("%s", diff)
+			}
+		})
+	}
+}

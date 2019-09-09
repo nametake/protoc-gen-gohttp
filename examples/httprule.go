@@ -25,3 +25,18 @@ func (m *Messaging) UpdateMessage(ctx context.Context, req *UpdateMessageRequest
 		Message: req.Message,
 	}, nil
 }
+
+func (m *Messaging) CreateMessage(ctx context.Context, req *CreateMessageRequest) (*CreateMessageResponse, error) {
+	return &CreateMessageResponse{
+		MessageId: req.MessageId,
+		Sub: &SubMessage{
+			Subfield: req.Sub.Subfield,
+		},
+		Msg: &CreateMessageResponse_Message{
+			Sub: &SubMessage{
+				Subfield: req.Msg.Sub.Subfield,
+			},
+		},
+		Opt: req.Opt,
+	}, nil
+}

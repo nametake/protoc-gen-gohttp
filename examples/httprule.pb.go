@@ -284,40 +284,255 @@ func (m *UpdateMessageResponse) GetMessage() string {
 	return ""
 }
 
+type CreateMessageRequest struct {
+	MessageId            string                        `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	Sub                  *SubMessage                   `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
+	Msg                  *CreateMessageRequest_Message `protobuf:"bytes,3,opt,name=msg,proto3" json:"msg,omitempty"`
+	Opt                  string                        `protobuf:"bytes,4,opt,name=opt,proto3" json:"opt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *CreateMessageRequest) Reset()         { *m = CreateMessageRequest{} }
+func (m *CreateMessageRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateMessageRequest) ProtoMessage()    {}
+func (*CreateMessageRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9d0d5480baba1876, []int{5}
+}
+
+func (m *CreateMessageRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateMessageRequest.Unmarshal(m, b)
+}
+func (m *CreateMessageRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateMessageRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateMessageRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMessageRequest.Merge(m, src)
+}
+func (m *CreateMessageRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateMessageRequest.Size(m)
+}
+func (m *CreateMessageRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMessageRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateMessageRequest proto.InternalMessageInfo
+
+func (m *CreateMessageRequest) GetMessageId() string {
+	if m != nil {
+		return m.MessageId
+	}
+	return ""
+}
+
+func (m *CreateMessageRequest) GetSub() *SubMessage {
+	if m != nil {
+		return m.Sub
+	}
+	return nil
+}
+
+func (m *CreateMessageRequest) GetMsg() *CreateMessageRequest_Message {
+	if m != nil {
+		return m.Msg
+	}
+	return nil
+}
+
+func (m *CreateMessageRequest) GetOpt() string {
+	if m != nil {
+		return m.Opt
+	}
+	return ""
+}
+
+type CreateMessageRequest_Message struct {
+	Sub                  *SubMessage `protobuf:"bytes,1,opt,name=sub,proto3" json:"sub,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *CreateMessageRequest_Message) Reset()         { *m = CreateMessageRequest_Message{} }
+func (m *CreateMessageRequest_Message) String() string { return proto.CompactTextString(m) }
+func (*CreateMessageRequest_Message) ProtoMessage()    {}
+func (*CreateMessageRequest_Message) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9d0d5480baba1876, []int{5, 0}
+}
+
+func (m *CreateMessageRequest_Message) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateMessageRequest_Message.Unmarshal(m, b)
+}
+func (m *CreateMessageRequest_Message) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateMessageRequest_Message.Marshal(b, m, deterministic)
+}
+func (m *CreateMessageRequest_Message) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMessageRequest_Message.Merge(m, src)
+}
+func (m *CreateMessageRequest_Message) XXX_Size() int {
+	return xxx_messageInfo_CreateMessageRequest_Message.Size(m)
+}
+func (m *CreateMessageRequest_Message) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMessageRequest_Message.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateMessageRequest_Message proto.InternalMessageInfo
+
+func (m *CreateMessageRequest_Message) GetSub() *SubMessage {
+	if m != nil {
+		return m.Sub
+	}
+	return nil
+}
+
+type CreateMessageResponse struct {
+	MessageId            string                         `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	Sub                  *SubMessage                    `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
+	Msg                  *CreateMessageResponse_Message `protobuf:"bytes,3,opt,name=msg,proto3" json:"msg,omitempty"`
+	Opt                  string                         `protobuf:"bytes,4,opt,name=opt,proto3" json:"opt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
+	XXX_unrecognized     []byte                         `json:"-"`
+	XXX_sizecache        int32                          `json:"-"`
+}
+
+func (m *CreateMessageResponse) Reset()         { *m = CreateMessageResponse{} }
+func (m *CreateMessageResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateMessageResponse) ProtoMessage()    {}
+func (*CreateMessageResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9d0d5480baba1876, []int{6}
+}
+
+func (m *CreateMessageResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateMessageResponse.Unmarshal(m, b)
+}
+func (m *CreateMessageResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateMessageResponse.Marshal(b, m, deterministic)
+}
+func (m *CreateMessageResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMessageResponse.Merge(m, src)
+}
+func (m *CreateMessageResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateMessageResponse.Size(m)
+}
+func (m *CreateMessageResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMessageResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateMessageResponse proto.InternalMessageInfo
+
+func (m *CreateMessageResponse) GetMessageId() string {
+	if m != nil {
+		return m.MessageId
+	}
+	return ""
+}
+
+func (m *CreateMessageResponse) GetSub() *SubMessage {
+	if m != nil {
+		return m.Sub
+	}
+	return nil
+}
+
+func (m *CreateMessageResponse) GetMsg() *CreateMessageResponse_Message {
+	if m != nil {
+		return m.Msg
+	}
+	return nil
+}
+
+func (m *CreateMessageResponse) GetOpt() string {
+	if m != nil {
+		return m.Opt
+	}
+	return ""
+}
+
+type CreateMessageResponse_Message struct {
+	Sub                  *SubMessage `protobuf:"bytes,1,opt,name=sub,proto3" json:"sub,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *CreateMessageResponse_Message) Reset()         { *m = CreateMessageResponse_Message{} }
+func (m *CreateMessageResponse_Message) String() string { return proto.CompactTextString(m) }
+func (*CreateMessageResponse_Message) ProtoMessage()    {}
+func (*CreateMessageResponse_Message) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9d0d5480baba1876, []int{6, 0}
+}
+
+func (m *CreateMessageResponse_Message) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateMessageResponse_Message.Unmarshal(m, b)
+}
+func (m *CreateMessageResponse_Message) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateMessageResponse_Message.Marshal(b, m, deterministic)
+}
+func (m *CreateMessageResponse_Message) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMessageResponse_Message.Merge(m, src)
+}
+func (m *CreateMessageResponse_Message) XXX_Size() int {
+	return xxx_messageInfo_CreateMessageResponse_Message.Size(m)
+}
+func (m *CreateMessageResponse_Message) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMessageResponse_Message.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateMessageResponse_Message proto.InternalMessageInfo
+
+func (m *CreateMessageResponse_Message) GetSub() *SubMessage {
+	if m != nil {
+		return m.Sub
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*GetMessageRequest)(nil), "helloworld.GetMessageRequest")
 	proto.RegisterType((*GetMessageResponse)(nil), "helloworld.GetMessageResponse")
 	proto.RegisterType((*SubMessage)(nil), "helloworld.SubMessage")
 	proto.RegisterType((*UpdateMessageRequest)(nil), "helloworld.UpdateMessageRequest")
 	proto.RegisterType((*UpdateMessageResponse)(nil), "helloworld.UpdateMessageResponse")
+	proto.RegisterType((*CreateMessageRequest)(nil), "helloworld.CreateMessageRequest")
+	proto.RegisterType((*CreateMessageRequest_Message)(nil), "helloworld.CreateMessageRequest.Message")
+	proto.RegisterType((*CreateMessageResponse)(nil), "helloworld.CreateMessageResponse")
+	proto.RegisterType((*CreateMessageResponse_Message)(nil), "helloworld.CreateMessageResponse.Message")
 }
 
 func init() { proto.RegisterFile("httprule.proto", fileDescriptor_9d0d5480baba1876) }
 
 var fileDescriptor_9d0d5480baba1876 = []byte{
-	// 344 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x92, 0x4f, 0x4b, 0xf3, 0x40,
-	0x10, 0xc6, 0x49, 0x53, 0xfa, 0xbe, 0x19, 0x51, 0x70, 0x50, 0x89, 0xd1, 0x4a, 0x9b, 0x53, 0x10,
-	0x4c, 0xb0, 0xbd, 0x79, 0xf4, 0x22, 0x1e, 0xbc, 0x44, 0xbc, 0x78, 0xd1, 0x0d, 0x59, 0xd3, 0xc0,
-	0x76, 0x37, 0x76, 0x77, 0x15, 0x2d, 0xbd, 0x78, 0x11, 0xcf, 0x7e, 0x34, 0xbf, 0x82, 0x1f, 0x44,
-	0x4c, 0x52, 0x93, 0xaa, 0x15, 0x45, 0x6f, 0x3b, 0x3b, 0x0f, 0xf3, 0x7b, 0xe6, 0x0f, 0x2c, 0x0d,
-	0x94, 0xca, 0x46, 0x9a, 0x51, 0x3f, 0x1b, 0x09, 0x25, 0x10, 0x06, 0x94, 0x31, 0x71, 0x2d, 0x46,
-	0x2c, 0x76, 0x36, 0x13, 0x21, 0x12, 0x46, 0x03, 0x92, 0xa5, 0x01, 0xe1, 0x5c, 0x28, 0xa2, 0x52,
-	0xc1, 0x65, 0xa1, 0x74, 0xcf, 0x61, 0xf9, 0x80, 0xaa, 0x23, 0x2a, 0x25, 0x49, 0x68, 0x48, 0x2f,
-	0x35, 0x95, 0x0a, 0xdb, 0x00, 0xc3, 0xe2, 0xe7, 0x2c, 0x8d, 0x6d, 0xa3, 0x63, 0x78, 0x56, 0x68,
-	0x95, 0x3f, 0x87, 0x31, 0xda, 0xf0, 0xaf, 0x0c, 0xec, 0x46, 0x9e, 0x9b, 0x86, 0x88, 0xd0, 0x54,
-	0x24, 0x91, 0xb6, 0xd9, 0x31, 0x3d, 0x2b, 0xcc, 0xdf, 0x2e, 0x01, 0xac, 0x13, 0x64, 0x26, 0xb8,
-	0xa4, 0xbf, 0x47, 0x34, 0x6b, 0x08, 0x0f, 0xe0, 0x58, 0x47, 0x25, 0x02, 0x1d, 0xf8, 0x2f, 0x75,
-	0x74, 0x91, 0x52, 0x36, 0x2d, 0xfc, 0x16, 0xbb, 0x37, 0xb0, 0x72, 0x92, 0xc5, 0x44, 0xd1, 0x9f,
-	0x75, 0xec, 0x81, 0x29, 0x75, 0x94, 0x5b, 0x59, 0xe8, 0xad, 0xf9, 0xd5, 0x74, 0xfd, 0x8a, 0x1b,
-	0xbe, 0x4a, 0xea, 0xc6, 0xcd, 0x19, 0xe3, 0xee, 0x2d, 0xac, 0xbe, 0x43, 0x7f, 0x6f, 0x14, 0x7f,
-	0xc0, 0xee, 0xdd, 0x37, 0xc0, 0x2a, 0xa4, 0x29, 0x4f, 0x90, 0x03, 0x54, 0x1b, 0xc1, 0x76, 0xbd,
-	0xe4, 0x87, 0x5b, 0x70, 0xb6, 0xe6, 0xa5, 0x0b, 0xf7, 0x6e, 0xf7, 0xee, 0xe9, 0xf9, 0xb1, 0xb1,
-	0x81, 0xeb, 0xc1, 0xd5, 0x6e, 0x50, 0xf2, 0x64, 0x30, 0xae, 0x3a, 0x9a, 0xe0, 0x83, 0x01, 0x8b,
-	0x33, 0xad, 0x63, 0xa7, 0x5e, 0xf4, 0xb3, 0x85, 0x38, 0xdd, 0x2f, 0x14, 0x25, 0xb9, 0x9f, 0x93,
-	0x77, 0x1c, 0x6f, 0x2e, 0x39, 0x18, 0x4b, 0x1d, 0xf9, 0xd3, 0xe5, 0x4f, 0xf6, 0x8c, 0xed, 0xfd,
-	0xd6, 0x69, 0x73, 0x48, 0x52, 0x1e, 0xb5, 0xf2, 0xf3, 0xef, 0xbf, 0x04, 0x00, 0x00, 0xff, 0xff,
-	0x44, 0xae, 0x1c, 0x61, 0x3a, 0x03, 0x00, 0x00,
+	// 452 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0x31, 0x6f, 0xd4, 0x30,
+	0x14, 0x80, 0xe5, 0x26, 0x6a, 0xc9, 0xab, 0x8a, 0xc0, 0x6a, 0x51, 0x08, 0x14, 0x5d, 0x3d, 0x05,
+	0x24, 0x12, 0x71, 0xb7, 0xb5, 0x0b, 0x02, 0x09, 0xc4, 0xc0, 0x12, 0xc4, 0xc2, 0x02, 0x8e, 0x62,
+	0xdc, 0x48, 0x49, 0x1c, 0x62, 0x07, 0x04, 0x55, 0x17, 0x36, 0x66, 0x56, 0x66, 0xfe, 0x10, 0xff,
+	0x00, 0xdd, 0x0f, 0x41, 0xe7, 0x24, 0x97, 0xe4, 0x2e, 0x77, 0x80, 0x7a, 0xb7, 0xc5, 0xf6, 0xb3,
+	0xbf, 0xef, 0x3d, 0xfb, 0x05, 0xae, 0x9f, 0x2b, 0x95, 0x17, 0x65, 0xc2, 0xbc, 0xbc, 0x10, 0x4a,
+	0x60, 0x38, 0x67, 0x49, 0x22, 0x3e, 0x89, 0x22, 0x89, 0x9c, 0xbb, 0x5c, 0x08, 0x9e, 0x30, 0x9f,
+	0xe6, 0xb1, 0x4f, 0xb3, 0x4c, 0x28, 0xaa, 0x62, 0x91, 0xc9, 0x2a, 0x92, 0xbc, 0x83, 0x9b, 0xcf,
+	0x99, 0x7a, 0xc9, 0xa4, 0xa4, 0x9c, 0x05, 0xec, 0x43, 0xc9, 0xa4, 0xc2, 0xc7, 0x00, 0x69, 0x35,
+	0xf3, 0x36, 0x8e, 0x6c, 0x34, 0x42, 0xae, 0x15, 0x58, 0xf5, 0xcc, 0x8b, 0x08, 0xdb, 0xb0, 0x57,
+	0x0f, 0xec, 0x1d, 0xbd, 0xd6, 0x0c, 0x31, 0x06, 0x53, 0x51, 0x2e, 0x6d, 0x63, 0x64, 0xb8, 0x56,
+	0xa0, 0xbf, 0x09, 0x05, 0xdc, 0x25, 0xc8, 0x5c, 0x64, 0x92, 0x5d, 0x1d, 0x61, 0x76, 0x10, 0x2e,
+	0xc0, 0xab, 0x32, 0xac, 0x11, 0xd8, 0x81, 0x6b, 0xb2, 0x0c, 0xdf, 0xc7, 0x2c, 0x69, 0x0e, 0x9e,
+	0x8f, 0xc9, 0x67, 0x38, 0x7c, 0x9d, 0x47, 0x54, 0xb1, 0xff, 0xcb, 0xd8, 0x05, 0x43, 0x96, 0xa1,
+	0x56, 0xd9, 0x1f, 0xdf, 0xf2, 0xda, 0xea, 0x7a, 0x2d, 0x37, 0x98, 0x85, 0x74, 0xc5, 0x8d, 0x9e,
+	0x38, 0xf9, 0x02, 0x47, 0x0b, 0xe8, 0x7f, 0x2b, 0xc5, 0x26, 0xd8, 0xbf, 0x11, 0x1c, 0x3e, 0x2d,
+	0xd8, 0x16, 0xf3, 0x3e, 0x05, 0x23, 0x95, 0x5c, 0x73, 0xf7, 0xc7, 0x6e, 0x37, 0x72, 0x88, 0xeb,
+	0xcd, 0xf7, 0xa6, 0x92, 0xe3, 0x1b, 0x60, 0x88, 0x5c, 0xd9, 0xa6, 0xa6, 0xcf, 0x3e, 0x9d, 0x09,
+	0xec, 0x35, 0xb7, 0x59, 0x2b, 0xa0, 0xbf, 0x2a, 0x90, 0x29, 0x82, 0xa3, 0x05, 0xd8, 0xa6, 0x2b,
+	0x7c, 0xd6, 0xcd, 0xf2, 0xfe, 0x9a, 0x2c, 0x2b, 0xf0, 0x36, 0xd2, 0x1c, 0xff, 0x34, 0xc0, 0xaa,
+	0x26, 0xe2, 0x8c, 0xe3, 0x0c, 0xa0, 0xed, 0x2e, 0x7c, 0xdc, 0xdd, 0xb8, 0xd4, 0xd7, 0xce, 0xbd,
+	0x55, 0xcb, 0x95, 0x2e, 0x39, 0xf9, 0xfa, 0x6b, 0xfa, 0x7d, 0xe7, 0x0e, 0xbe, 0xed, 0x7f, 0x7c,
+	0xe4, 0xd7, 0xf5, 0x91, 0xfe, 0x45, 0x5b, 0xbb, 0x4b, 0xfc, 0x0d, 0xc1, 0x41, 0xef, 0x19, 0xe3,
+	0x51, 0xf7, 0xd0, 0xa1, 0xe6, 0x72, 0x4e, 0xd6, 0x44, 0xd4, 0xe4, 0x89, 0x26, 0x3f, 0x74, 0xdc,
+	0x95, 0x64, 0xff, 0x42, 0x96, 0xa1, 0xd7, 0x34, 0xf2, 0xe5, 0x29, 0x7a, 0x80, 0x7f, 0x20, 0x38,
+	0xe8, 0xd5, 0xbd, 0xef, 0x32, 0xf4, 0xf0, 0xfa, 0x2e, 0x83, 0x97, 0x46, 0x9e, 0x69, 0x97, 0xc7,
+	0xe4, 0x6c, 0x8d, 0x4b, 0x2a, 0xb9, 0xd7, 0xf3, 0x59, 0xd6, 0x7b, 0xb2, 0xfb, 0xc6, 0x4c, 0x69,
+	0x9c, 0x85, 0xbb, 0xfa, 0x4f, 0x3b, 0xf9, 0x13, 0x00, 0x00, 0xff, 0xff, 0x34, 0x8b, 0x25, 0xbf,
+	0xa5, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -334,6 +549,7 @@ const _ = grpc.SupportPackageIsVersion4
 type MessagingClient interface {
 	GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*GetMessageResponse, error)
 	UpdateMessage(ctx context.Context, in *UpdateMessageRequest, opts ...grpc.CallOption) (*UpdateMessageResponse, error)
+	CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*CreateMessageResponse, error)
 }
 
 type messagingClient struct {
@@ -362,10 +578,20 @@ func (c *messagingClient) UpdateMessage(ctx context.Context, in *UpdateMessageRe
 	return out, nil
 }
 
+func (c *messagingClient) CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*CreateMessageResponse, error) {
+	out := new(CreateMessageResponse)
+	err := c.cc.Invoke(ctx, "/helloworld.Messaging/CreateMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessagingServer is the server API for Messaging service.
 type MessagingServer interface {
 	GetMessage(context.Context, *GetMessageRequest) (*GetMessageResponse, error)
 	UpdateMessage(context.Context, *UpdateMessageRequest) (*UpdateMessageResponse, error)
+	CreateMessage(context.Context, *CreateMessageRequest) (*CreateMessageResponse, error)
 }
 
 // UnimplementedMessagingServer can be embedded to have forward compatible implementations.
@@ -377,6 +603,9 @@ func (*UnimplementedMessagingServer) GetMessage(ctx context.Context, req *GetMes
 }
 func (*UnimplementedMessagingServer) UpdateMessage(ctx context.Context, req *UpdateMessageRequest) (*UpdateMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMessage not implemented")
+}
+func (*UnimplementedMessagingServer) CreateMessage(ctx context.Context, req *CreateMessageRequest) (*CreateMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMessage not implemented")
 }
 
 func RegisterMessagingServer(s *grpc.Server, srv MessagingServer) {
@@ -419,6 +648,24 @@ func _Messaging_UpdateMessage_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Messaging_CreateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).CreateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/helloworld.Messaging/CreateMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).CreateMessage(ctx, req.(*CreateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Messaging_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "helloworld.Messaging",
 	HandlerType: (*MessagingServer)(nil),
@@ -430,6 +677,10 @@ var _Messaging_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMessage",
 			Handler:    _Messaging_UpdateMessage_Handler,
+		},
+		{
+			MethodName: "CreateMessage",
+			Handler:    _Messaging_CreateMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

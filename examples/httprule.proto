@@ -16,6 +16,12 @@ service Messaging {
       body: "*"
     };
   }
+  rpc CreateMessage(CreateMessageRequest) returns (CreateMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/messages/{message_id}/{msg.sub.subfield}/{sub.subfield}"
+      body: "*"
+    };
+  }
 }
 
 message GetMessageRequest {
@@ -44,4 +50,24 @@ message UpdateMessageResponse {
   string message_id = 1;
   SubMessage sub = 2;
   string message = 3;
+}
+
+message CreateMessageRequest {
+  message Message {
+    SubMessage sub = 1;
+  }
+  string message_id = 1;
+  SubMessage sub = 2;
+  Message msg = 3;
+  string opt = 4;
+}
+
+message CreateMessageResponse {
+  message Message {
+    SubMessage sub = 1;
+  }
+  string message_id = 1;
+  SubMessage sub = 2;
+  Message msg = 3;
+  string opt = 4;
 }

@@ -30,6 +30,11 @@ func parsePattern(pattern string) ([]*targetVariable, error) {
 	}
 
 	sort.Slice(variables, func(i, j int) bool {
+		a := variables[i]
+		b := variables[j]
+		if len(strings.Split(a.Path, ".")) < len(strings.Split(b.Path, ".")) {
+			return true
+		}
 		return variables[i].Path < variables[j].Path
 	})
 
