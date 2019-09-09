@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
@@ -394,9 +395,226 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 
 		p := strings.Split(r.URL.Path, "/")
 		arg.MessageId = p[3]
+		reflect.ValueOf(&arg.Sub).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Sub).Elem()).Interface()))
 		arg.Sub.Subfield = p[4]
 
 		ret, err := h.srv.UpdateMessage(ctx, arg)
+		if err != nil {
+			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		switch accept {
+		case "application/protobuf", "application/x-protobuf":
+			buf, err := proto.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+		case "application/json":
+			m := jsonpb.Marshaler{
+				EnumsAsInts:  true,
+				EmitDefaults: true,
+			}
+			if err := m.Marshal(w, ret); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+		default:
+			w.WriteHeader(http.StatusUnsupportedMediaType)
+			_, err := fmt.Fprintf(w, "Unsupported Accept: %s", accept)
+			cb(ctx, w, r, arg, ret, err)
+			return
+		}
+		cb(ctx, w, r, arg, ret, nil)
+	})
+}
+
+// CreateMessage returns MessagingServer interface's CreateMessage converted to http.HandlerFunc.
+func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+	if cb == nil {
+		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				p := status.New(codes.Unknown, err.Error()).Proto()
+				switch r.Header.Get("Content-Type") {
+				case "application/protobuf", "application/x-protobuf":
+					buf, err := proto.Marshal(p)
+					if err != nil {
+						return
+					}
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+						return
+					}
+				case "application/json":
+					if err := json.NewEncoder(w).Encode(p); err != nil {
+						return
+					}
+				default:
+				}
+			}
+		}
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		arg := &CreateMessageRequest{}
+		contentType := r.Header.Get("Content-Type")
+		if r.Method != http.MethodGet {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+
+			switch contentType {
+			case "application/protobuf", "application/x-protobuf":
+				if err := proto.Unmarshal(body, arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			case "application/json":
+				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			default:
+				w.WriteHeader(http.StatusUnsupportedMediaType)
+				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		ret, err := h.srv.CreateMessage(ctx, arg)
+		if err != nil {
+			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		switch accept {
+		case "application/protobuf", "application/x-protobuf":
+			buf, err := proto.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+		case "application/json":
+			m := jsonpb.Marshaler{
+				EnumsAsInts:  true,
+				EmitDefaults: true,
+			}
+			if err := m.Marshal(w, ret); err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
+			}
+		default:
+			w.WriteHeader(http.StatusUnsupportedMediaType)
+			_, err := fmt.Fprintf(w, "Unsupported Accept: %s", accept)
+			cb(ctx, w, r, arg, ret, err)
+			return
+		}
+		cb(ctx, w, r, arg, ret, nil)
+	})
+}
+
+// CreateMessageWithName returns Service name, Method name and MessagingServer interface's CreateMessage converted to http.HandlerFunc.
+func (h *MessagingHTTPConverter) CreateMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+	return "Messaging", "CreateMessage", h.CreateMessage(cb)
+}
+
+func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+	if cb == nil {
+		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				p := status.New(codes.Unknown, err.Error()).Proto()
+				switch r.Header.Get("Content-Type") {
+				case "application/protobuf", "application/x-protobuf":
+					buf, err := proto.Marshal(p)
+					if err != nil {
+						return
+					}
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
+						return
+					}
+				case "application/json":
+					if err := json.NewEncoder(w).Encode(p); err != nil {
+						return
+					}
+				default:
+				}
+			}
+		}
+	}
+	return http.MethodPost, "/v1/messages/{message_id}/{msg.sub.subfield}/{sub.subfield}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		arg := &CreateMessageRequest{}
+		contentType := r.Header.Get("Content-Type")
+		if r.Method != http.MethodGet {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+
+			switch contentType {
+			case "application/protobuf", "application/x-protobuf":
+				if err := proto.Unmarshal(body, arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			case "application/json":
+				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+					cb(ctx, w, r, nil, nil, err)
+					return
+				}
+			default:
+				w.WriteHeader(http.StatusUnsupportedMediaType)
+				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
+				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		p := strings.Split(r.URL.Path, "/")
+		arg.MessageId = p[3]
+		reflect.ValueOf(&arg.Sub).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Sub).Elem()).Interface()))
+		arg.Sub.Subfield = p[5]
+		reflect.ValueOf(&arg.Msg).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Msg).Elem()).Interface()))
+		reflect.ValueOf(&arg.Msg.Sub).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Msg.Sub).Elem()).Interface()))
+		arg.Msg.Sub.Subfield = p[4]
+
+		ret, err := h.srv.CreateMessage(ctx, arg)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
 			return

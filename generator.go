@@ -73,17 +73,34 @@ func (t *targetFile) IsImportBase64() bool {
 	return false
 }
 
+func (t *targetFile) IsImportReflect() bool {
+	for _, service := range t.Services {
+		for _, method := range service.Methods {
+			if method.HTTPRule == nil {
+				continue
+			}
+			for _, variable := range method.HTTPRule.Variables {
+				if len(strings.Split(variable.Path, ".")) >= 2 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 type targetService struct {
 	Name    string
 	Methods []*targetMethod
 }
 
 type targetMethod struct {
-	Name        string
-	Arg         string
-	Comment     string
-	HTTPRule    *targetHTTPRule
-	QueryParams []*targetQueryParam
+	Name                     string
+	Arg                      string
+	Comment                  string
+	HTTPRule                 *targetHTTPRule
+	QueryParams              []*targetQueryParam
+	isFirstTouchNestedStruct map[string]struct{}
 }
 
 func (t *targetMethod) GetQueryParams() []*targetQueryParam {
@@ -100,6 +117,20 @@ func (t *targetMethod) GetQueryParams() []*targetQueryParam {
 		}
 	}
 	return params
+}
+
+func (t *targetMethod) IsCreateInstance(path string) bool {
+	p := strings.Split(path, ".")
+	if len(p) == 1 {
+		return false
+	}
+	// ex.) a.b.c -> a.b
+	parent := strings.Join(p[0:len(p)-1], ".")
+	if _, ok := t.isFirstTouchNestedStruct[parent]; !ok {
+		return true
+	}
+	t.isFirstTouchNestedStruct[parent] = struct{}{}
+	return false
 }
 
 type targetHTTPRule struct {
@@ -131,6 +162,18 @@ type targetVariable struct {
 
 func (t *targetVariable) GetPath() string {
 	return toCamelCase(t.Path)
+}
+
+func (t *targetVariable) GetPaths() []string {
+	paths := make([]string, 0)
+	ps := strings.Split(t.Path, ".")
+	for i := range ps {
+		if i == 0 {
+			continue
+		}
+		paths = append(paths, toCamelCase(strings.Join(ps[0:i], ".")))
+	}
+	return paths
 }
 
 const (

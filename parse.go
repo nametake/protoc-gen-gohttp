@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -18,17 +19,26 @@ func parsePattern(pattern string) ([]*targetVariable, error) {
 		return nil, err
 	}
 
-	valiables := make([]*targetVariable, 0)
+	variables := make([]*targetVariable, 0)
 	for i, seg := range segs {
 		if v, ok := seg.(variable); ok {
-			valiables = append(valiables, &targetVariable{
+			variables = append(variables, &targetVariable{
 				Index: i + 1,
 				Path:  v.path,
 			})
 		}
 	}
 
-	return valiables, nil
+	sort.Slice(variables, func(i, j int) bool {
+		a := variables[i]
+		b := variables[j]
+		if len(strings.Split(a.Path, ".")) < len(strings.Split(b.Path, ".")) {
+			return true
+		}
+		return variables[i].Path < variables[j].Path
+	})
+
+	return variables, nil
 }
 
 func tokenize(path string) (tokens []string, verb string) {
