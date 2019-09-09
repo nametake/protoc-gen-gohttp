@@ -79,11 +79,12 @@ type targetService struct {
 }
 
 type targetMethod struct {
-	Name        string
-	Arg         string
-	Comment     string
-	HTTPRule    *targetHTTPRule
-	QueryParams []*targetQueryParam
+	Name                     string
+	Arg                      string
+	Comment                  string
+	HTTPRule                 *targetHTTPRule
+	QueryParams              []*targetQueryParam
+	isFirstTouchNestedStruct map[string]struct{}
 }
 
 func (t *targetMethod) GetQueryParams() []*targetQueryParam {
@@ -100,6 +101,20 @@ func (t *targetMethod) GetQueryParams() []*targetQueryParam {
 		}
 	}
 	return params
+}
+
+func (t *targetMethod) IsCreateInstance(path string) bool {
+	p := strings.Split(path, ".")
+	if len(p) == 1 {
+		return false
+	}
+	// ex.) a.b.c -> a.b
+	parent := strings.Join(p[0:len(p)-1], ".")
+	if _, ok := t.isFirstTouchNestedStruct[parent]; !ok {
+		return true
+	}
+	t.isFirstTouchNestedStruct[parent] = struct{}{}
+	return false
 }
 
 type targetHTTPRule struct {
@@ -131,6 +146,11 @@ type targetVariable struct {
 
 func (t *targetVariable) GetPath() string {
 	return toCamelCase(t.Path)
+}
+
+func (t *targetVariable) GetParentPath() string {
+	p := strings.Split(t.Path, ".")
+	return toCamelCase(strings.Join(p[0:len(p)-1], "."))
 }
 
 const (
