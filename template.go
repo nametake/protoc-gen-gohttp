@@ -225,7 +225,9 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 		p := strings.Split(r.URL.Path, "/")
 		{{ range $j, $variable := $method.HTTPRule.Variables -}}
 		{{ if $method.IsCreateInstance $variable.GetPath -}}
-		reflect.ValueOf(&arg.{{ $variable.GetParentPath }}).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.{{ $variable.GetParentPath }}).Elem()).Interface()))
+		{{ range $k, $p := $variable.GetPaths -}}
+		reflect.ValueOf(&arg.{{ $p }}).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.{{ $p }}).Elem()).Interface()))
+		{{ end -}}
 		{{ end -}}
 		arg.{{ $variable.GetPath }} = p[{{ $variable.Index }}]
 		{{ end -}}

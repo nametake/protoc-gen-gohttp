@@ -164,9 +164,16 @@ func (t *targetVariable) GetPath() string {
 	return toCamelCase(t.Path)
 }
 
-func (t *targetVariable) GetParentPath() string {
-	p := strings.Split(t.Path, ".")
-	return toCamelCase(strings.Join(p[0:len(p)-1], "."))
+func (t *targetVariable) GetPaths() []string {
+	paths := make([]string, 0)
+	ps := strings.Split(t.Path, ".")
+	for i := range ps {
+		if i == 0 {
+			continue
+		}
+		paths = append(paths, toCamelCase(strings.Join(ps[0:i], ".")))
+	}
+	return paths
 }
 
 const (

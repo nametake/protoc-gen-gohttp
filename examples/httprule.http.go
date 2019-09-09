@@ -610,6 +610,7 @@ func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Conte
 		arg.MessageId = p[3]
 		reflect.ValueOf(&arg.Sub).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Sub).Elem()).Interface()))
 		arg.Sub.Subfield = p[5]
+		reflect.ValueOf(&arg.Msg).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Msg).Elem()).Interface()))
 		reflect.ValueOf(&arg.Msg.Sub).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Msg.Sub).Elem()).Interface()))
 		arg.Msg.Sub.Subfield = p[4]
 

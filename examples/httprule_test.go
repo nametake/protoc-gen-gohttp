@@ -262,7 +262,7 @@ func TestMessaging_CreateMessage(t *testing.T) {
 					return nil, err
 				}
 
-				req := httptest.NewRequest(http.MethodPut, "/v1/messages/abc1234/subsub/submsg", body)
+				req := httptest.NewRequest(http.MethodPost, "/v1/messages/abc1234/subsub/submsg", body)
 				req.Header.Set("Content-Type", "application/json")
 				return req, nil
 			},
@@ -270,7 +270,7 @@ func TestMessaging_CreateMessage(t *testing.T) {
 			wantErr: false,
 			want: &want{
 				StatusCode: http.StatusOK,
-				Method:     http.MethodPut,
+				Method:     http.MethodPost,
 				Path:       "/v1/messages/{message_id}/{msg.sub.subfield}/{sub.subfield}",
 				Resp: &CreateMessageResponse{
 					MessageId: "abc1234",
@@ -282,6 +282,7 @@ func TestMessaging_CreateMessage(t *testing.T) {
 							Subfield: "subsub",
 						},
 					},
+					Opt: "option1",
 				},
 			},
 		},
@@ -298,7 +299,7 @@ func TestMessaging_CreateMessage(t *testing.T) {
 				}
 				body := bytes.NewBuffer(buf)
 
-				req := httptest.NewRequest(http.MethodPut, "/v1/messages/foobar/Subsub/sub", body)
+				req := httptest.NewRequest(http.MethodPost, "/v1/messages/foobar/Subsub/sub", body)
 				req.Header.Set("Content-Type", "application/protobuf")
 				return req, nil
 			},
@@ -306,7 +307,7 @@ func TestMessaging_CreateMessage(t *testing.T) {
 			wantErr: false,
 			want: &want{
 				StatusCode: http.StatusOK,
-				Method:     http.MethodPut,
+				Method:     http.MethodPost,
 				Path:       "/v1/messages/{message_id}/{msg.sub.subfield}/{sub.subfield}",
 				Resp: &CreateMessageResponse{
 					MessageId: "foobar",
@@ -315,9 +316,10 @@ func TestMessaging_CreateMessage(t *testing.T) {
 					},
 					Msg: &CreateMessageResponse_Message{
 						Sub: &SubMessage{
-							Subfield: "subsub",
+							Subfield: "Subsub",
 						},
 					},
+					Opt: "option2",
 				},
 			},
 		},
