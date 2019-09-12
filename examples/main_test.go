@@ -14,8 +14,9 @@ import (
 
 func TestEchoGreeterServer_SayHello(t *testing.T) {
 	type want struct {
-		StatusCode int
-		Resp       *HelloReply
+		StatusCode  int
+		ContentType string
+		Resp        *HelloReply
 	}
 	var tests = []struct {
 		name    string
@@ -38,12 +39,14 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodPost, "/", body)
 				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
 			cb:      nil,
 			wantErr: false,
 			want: &want{
-				StatusCode: 200,
+				StatusCode:  200,
+				ContentType: "application/json",
 				Resp: &HelloReply{
 					Message: "Hello, John!",
 				},
@@ -64,12 +67,14 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodPost, "/", body)
 				req.Header.Set("Content-Type", "application/protobuf")
+				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
 			cb:      nil,
 			wantErr: false,
 			want: &want{
-				StatusCode: 200,
+				StatusCode:  200,
+				ContentType: "application/protobuf",
 				Resp: &HelloReply{
 					Message: "Hello, Smith!",
 				},
@@ -80,6 +85,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			reqFunc: func() (*http.Request, error) {
 				req := httptest.NewRequest(http.MethodPost, "/", nil)
 				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
 			cb: func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -96,8 +102,63 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			},
 			wantErr: true,
 			want: &want{
-				StatusCode: http.StatusBadRequest,
-				Resp:       nil,
+				StatusCode:  http.StatusBadRequest,
+				ContentType: "",
+				Resp:        nil,
+			},
+		},
+		{
+			name: "Accept empty",
+			reqFunc: func() (*http.Request, error) {
+				p := &HelloRequest{
+					Name: "John",
+				}
+
+				body := &bytes.Buffer{}
+				if err := json.NewEncoder(body).Encode(p); err != nil {
+					return nil, err
+				}
+
+				req := httptest.NewRequest(http.MethodPost, "/", body)
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Accept", "")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &want{
+				StatusCode:  200,
+				ContentType: "application/json",
+				Resp: &HelloReply{
+					Message: "Hello, John!",
+				},
+			},
+		},
+		{
+			name: "Content-Type JSON, but Accept Protobuf",
+			reqFunc: func() (*http.Request, error) {
+				p := &HelloRequest{
+					Name: "John",
+				}
+
+				body := &bytes.Buffer{}
+				if err := json.NewEncoder(body).Encode(p); err != nil {
+					return nil, err
+				}
+
+				req := httptest.NewRequest(http.MethodPost, "/", body)
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Accept", "application/protobuf")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			want: &want{
+				StatusCode:  200,
+				ContentType: "application/protobuf",
+				Resp: &HelloReply{
+					Message: "Hello, John!",
+				},
 			},
 		},
 	}
@@ -116,9 +177,10 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			handler.SayHello(tt.cb).ServeHTTP(rec, req)
 
 			var resp *HelloReply
+			var contentType string
 			if !tt.wantErr {
 				resp = &HelloReply{}
-				switch req.Header.Get("Content-Type") {
+				switch contentType = rec.Header().Get("Content-Type"); contentType {
 				case "application/protobuf":
 					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
@@ -132,8 +194,9 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			}
 
 			actual := &want{
-				StatusCode: rec.Code,
-				Resp:       resp,
+				StatusCode:  rec.Code,
+				ContentType: contentType,
+				Resp:        resp,
 			}
 
 			if diff := cmp.Diff(actual, tt.want); diff != "" {
