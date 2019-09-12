@@ -103,6 +103,8 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 			}
 		}
 
+		w.Header().Set("Content-Type", accept)
+
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)

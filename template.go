@@ -118,6 +118,8 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 			}
 		}
 
+		w.Header().Set("Content-Type", accept)
+
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
@@ -248,6 +250,8 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 				accept = "application/json"
 			}
 		}
+
+		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":

@@ -105,6 +105,8 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 			}
 		}
 
+		w.Header().Set("Content-Type", accept)
+
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
@@ -201,6 +203,8 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 				accept = "application/json"
 			}
 		}
+
+		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -303,6 +307,8 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 				accept = "application/json"
 			}
 		}
+
+		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -413,6 +419,8 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 			}
 		}
 
+		w.Header().Set("Content-Type", accept)
+
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
@@ -514,6 +522,8 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 				accept = "application/json"
 			}
 		}
+
+		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -625,6 +635,8 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 				accept = "application/json"
 			}
 		}
+
+		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
