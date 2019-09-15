@@ -28,7 +28,7 @@ func TestAllPattern_AllPattern(t *testing.T) {
 		{
 			name: "GET method and Content-Type JSON",
 			reqFunc: func() (*http.Request, error) {
-				req := httptest.NewRequest(http.MethodGet, "/all/pattern?double=1.1", nil)
+				req := httptest.NewRequest(http.MethodGet, "/all/pattern", nil)
 				req.Header.Set("Content-Type", "application/json")
 				return req, nil
 			},
@@ -46,7 +46,7 @@ func TestAllPattern_AllPattern(t *testing.T) {
 		{
 			name: "GET method and Content-Type Protobuf",
 			reqFunc: func() (*http.Request, error) {
-				req := httptest.NewRequest(http.MethodGet, "/all/pattern?double=1.1", nil)
+				req := httptest.NewRequest(http.MethodGet, "/all/pattern", nil)
 				req.Header.Set("Content-Type", "application/protobuf")
 				return req, nil
 			},
@@ -56,7 +56,9 @@ func TestAllPattern_AllPattern(t *testing.T) {
 				StatusCode: http.StatusOK,
 				Method:     http.MethodGet,
 				Path:       "/all/pattern",
-				Resp:       &AllPatternMessage{},
+				Resp: &AllPatternMessage{
+					RepeatedDouble: make([]float64, 0),
+				},
 			},
 		},
 	}

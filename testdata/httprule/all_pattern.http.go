@@ -172,8 +172,8 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 		arg := &AllPatternRequest{}
 		contentType := r.Header.Get("Content-Type")
 		if r.Method == http.MethodGet {
-			{
-				d, err := strconv.ParseFloat(r.URL.Query().Get("double"), 64)
+			if v := r.URL.Query().Get("double"); v != "" {
+				d, err := strconv.ParseFloat(v, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
