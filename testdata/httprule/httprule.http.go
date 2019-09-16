@@ -172,16 +172,16 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 		arg := &GetMessageRequest{}
 		contentType := r.Header.Get("Content-Type")
 		if r.Method == http.MethodGet {
-			{
-				i64, err := strconv.ParseInt(r.URL.Query().Get("revision"), 10, 64)
+			if v := r.URL.Query().Get("revision"); v != "" {
+				i64, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
 				arg.Revision = i64
 			}
-			{
-				arg.Sub.Subfield = r.URL.Query().Get("sub.subfield")
+			if v := r.URL.Query().Get("sub.subfield"); v != "" {
+				arg.Sub.Subfield = v
 			}
 		}
 
