@@ -34,7 +34,6 @@ import (
 type {{ $service.Name }}HTTPConverter struct {
 	srv {{ $service.Name }}Server
 }
-
 // New{{ $service.Name }}HTTPConverter returns {{ $service.Name }}HTTPConverter.
 func New{{ $service.Name }}HTTPConverter(srv {{ $service.Name }}Server) *{{ $service.Name }}HTTPConverter {
 	return &{{ $service.Name }}HTTPConverter{
@@ -47,7 +46,7 @@ func New{{ $service.Name }}HTTPConverter(srv {{ $service.Name }}Server) *{{ $ser
 //
 // {{ $method.Comment }}
 {{ end -}}
-func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -102,6 +101,13 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 			}
 		}
 
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
+				return
+			}
+		}
+	
 		ret, err := h.srv.{{ $method.Name }}(ctx, arg)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
