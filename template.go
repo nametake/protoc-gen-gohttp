@@ -166,7 +166,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}WithName(cb func(ct
 }
 
 {{ if $method.HTTPRule -}}
-func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -240,6 +240,13 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 		arg.{{ $variable.GetPath }} = p[{{ $variable.Index }}]
 		{{ end -}}
 		{{ end }}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
+				return
+			}
+		}
 
 		ret, err := h.srv.{{ $method.Name }}(ctx, arg)
 		if err != nil {

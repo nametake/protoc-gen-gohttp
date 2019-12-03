@@ -34,7 +34,7 @@ func NewAllPatternHTTPConverter(srv AllPatternServer) *AllPatternHTTPConverter {
 }
 
 // AllPattern returns AllPatternServer interface's AllPattern converted to http.HandlerFunc.
-func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -85,6 +85,13 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 				w.WriteHeader(http.StatusUnsupportedMediaType)
 				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
 				return
 			}
 		}
@@ -142,7 +149,7 @@ func (h *AllPatternHTTPConverter) AllPatternWithName(cb func(ctx context.Context
 	return "AllPattern", "AllPattern", h.AllPattern(cb)
 }
 
-func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -421,6 +428,13 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 					arr = append(arr, b)
 				}
 				arg.RepeatedBytes = arr
+			}
+		}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
+				return
 			}
 		}
 

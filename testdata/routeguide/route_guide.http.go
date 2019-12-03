@@ -32,7 +32,7 @@ func NewRouteGuideHTTPConverter(srv RouteGuideServer) *RouteGuideHTTPConverter {
 }
 
 // GetFeature returns RouteGuideServer interface's GetFeature converted to http.HandlerFunc.
-func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -83,6 +83,13 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 				w.WriteHeader(http.StatusUnsupportedMediaType)
 				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
 				return
 			}
 		}

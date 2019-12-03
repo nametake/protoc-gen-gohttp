@@ -34,7 +34,7 @@ func NewMessagingHTTPConverter(srv MessagingServer) *MessagingHTTPConverter {
 }
 
 // GetMessage returns MessagingServer interface's GetMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -85,6 +85,13 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 				w.WriteHeader(http.StatusUnsupportedMediaType)
 				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
 				return
 			}
 		}
@@ -142,7 +149,7 @@ func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context,
 	return "Messaging", "GetMessage", h.GetMessage(cb)
 }
 
-func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -187,6 +194,13 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 
 		p := strings.Split(r.URL.Path, "/")
 		arg.MessageId = p[3]
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
+				return
+			}
+		}
 
 		ret, err := h.srv.GetMessage(ctx, arg)
 		if err != nil {
@@ -237,7 +251,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 }
 
 // UpdateMessage returns MessagingServer interface's UpdateMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -288,6 +302,13 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 				w.WriteHeader(http.StatusUnsupportedMediaType)
 				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
 				return
 			}
 		}
@@ -345,7 +366,7 @@ func (h *MessagingHTTPConverter) UpdateMessageWithName(cb func(ctx context.Conte
 	return "Messaging", "UpdateMessage", h.UpdateMessage(cb)
 }
 
-func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -403,6 +424,13 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 		p := strings.Split(r.URL.Path, "/")
 		arg.MessageId = p[3]
 
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
+				return
+			}
+		}
+
 		ret, err := h.srv.UpdateMessage(ctx, arg)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
@@ -452,7 +480,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 }
 
 // SubFieldMessage returns MessagingServer interface's SubFieldMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -503,6 +531,13 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 				w.WriteHeader(http.StatusUnsupportedMediaType)
 				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
 				return
 			}
 		}
@@ -560,7 +595,7 @@ func (h *MessagingHTTPConverter) SubFieldMessageWithName(cb func(ctx context.Con
 	return "Messaging", "SubFieldMessage", h.SubFieldMessage(cb)
 }
 
-func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -619,6 +654,13 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 		arg.MessageId = p[3]
 		reflect.ValueOf(&arg.Sub).Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.Sub).Elem()).Interface()))
 		arg.Sub.Subfield = p[4]
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
+				return
+			}
+		}
 
 		ret, err := h.srv.SubFieldMessage(ctx, arg)
 		if err != nil {

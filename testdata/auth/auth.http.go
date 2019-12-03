@@ -32,7 +32,7 @@ func NewTestServiceHTTPConverter(srv TestServiceServer) *TestServiceHTTPConverte
 }
 
 // UnaryCall returns TestServiceServer interface's UnaryCall converted to http.HandlerFunc.
-func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), hooks ...func(ctx context.Context, arg proto.Message) error) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -83,6 +83,13 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 				w.WriteHeader(http.StatusUnsupportedMediaType)
 				_, err := fmt.Fprintf(w, "Unsupported Content-Type: %s", contentType)
 				cb(ctx, w, r, nil, nil, err)
+				return
+			}
+		}
+
+		for _, hook := range hooks {
+			if err := hook(ctx, arg); err != nil {
+				cb(ctx, w, r, arg, nil, err)
 				return
 			}
 		}
