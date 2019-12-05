@@ -111,7 +111,7 @@ func main() {
 	conv := NewGreeterHTTPConverter(srv)
 
 	// Register SayHello HandlerFunc to the server.
-	// If you do not need a callback, pass nil as argument.
+	// If you do not need a http handle callback, pass nil as argument.
 	http.Handle("/sayhello", conv.SayHello(logCallback))
 	// If you want to create a path from Proto's service name and method name, use the SayHelloWithName method.
 	// In this case, the strings 'Greeter' and 'SayHello' are returned.
@@ -223,12 +223,14 @@ When you actually execute the above server and execute `curl -H "Content-Type: a
 }
 ```
 
-Callback
---------
+HTTP Handle Callback
+--------------------
 
-Callback is called when the end of the generated code is reached without error or when an error occurs.
+A http handle callback is a function to handle RPC calls with HTTP.
 
-Callback is passed HTTP context and http.ResponseWriter and http.Request, RPC arguments and return values, and error.
+It is called when the end of the generated code is reached without error or when an error occurs.
+
+The callback is passed HTTP context and http.ResponseWriter and http.Request, RPC arguments and return values, and error.
 
 RPC arguments and return values, and errors may be nil. Here's when nil is passed:
 
@@ -241,7 +243,7 @@ RPC arguments and return values, and errors may be nil. Here's when nil is passe
 
 You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is ignored.
 
-If nil is passed to callback, the error is always handled as an InternalServerError.
+If nil is passed to the callback, the error is always handled as an InternalServerError.
 
 NOT SUPPORTED
 -------------
@@ -252,4 +254,5 @@ NOT SUPPORTED
 	-	[selector](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.string.google.api.HttpRule.selector)
 	-	[additional_bindings](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.repeated.google.api.HttpRule.google.api.HttpRule.additional_bindings)
 	-	[custom](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.google.api.CustomHttpPattern.google.api.HttpRule.custom)
+-	`enum` type query string
 -	`map` type query string
