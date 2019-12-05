@@ -34,7 +34,7 @@ func NewGreeterHTTPConverter(srv GreeterServer) *GreeterHTTPConverter {
 // SayHello returns GreeterServer interface's SayHello converted to http.HandlerFunc.
 //
 // SayHello says hello.
-func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -89,7 +89,29 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 			}
 		}
 
-		ret, err := h.srv.SayHello(ctx, arg)
+		n := len(interceptors)
+		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
+			chainer := func(
+				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
+				currentHandler func(context.Context, proto.Message) (proto.Message, error),
+			) func(context.Context, proto.Message) (proto.Message, error) {
+				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
+					return currentInter(currentCtx, currentReq, currentHandler)
+				}
+			}
+
+			chainedRPC := rpc
+			for i := n - 1; i >= 0; i-- {
+				chainedRPC = chainer(interceptors[i], chainedRPC)
+			}
+			return chainedRPC(ctx, arg)
+		}
+
+		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
+			return h.srv.SayHello(ctx, r.(*HelloRequest))
+		}
+
+		ret, err := chained(ctx, arg, rpc)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
 			return
@@ -140,6 +162,6 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 // SayHelloWithName returns Service name, Method name and GreeterServer interface's SayHello converted to http.HandlerFunc.
 //
 // SayHello says hello.
-func (h *GreeterHTTPConverter) SayHelloWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
-	return "Greeter", "SayHello", h.SayHello(cb)
+func (h *GreeterHTTPConverter) SayHelloWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+	return "Greeter", "SayHello", h.SayHello(cb, interceptors...)
 }
