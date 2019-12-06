@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/grpc"
 )
 
 func TestEchoGreeterServer_SayHello(t *testing.T) {
@@ -22,8 +23,8 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 	var tests = []struct {
 		name         string
 		reqFunc      func() (*http.Request, error)
-		cb           func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
-		interceptors []func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)
+		cb           func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret interface{}, err error)
+		interceptors []grpc.UnaryServerInterceptor
 		wantErr      bool
 		want         *want
 	}{
@@ -90,7 +91,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
-			cb: func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
+			cb: func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret interface{}, err error) {
 				if arg != nil {
 					t.Errorf("arg is not nil: %#v", arg)
 				}
@@ -181,17 +182,18 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				return req, nil
 			},
 			cb: nil,
-			interceptors: []func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error){
-
-				func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-					ret, err := rpc(ctx, arg)
-					if err != nil {
-						return nil, err
-					}
-					r := ret.(*HelloReply)
-					r.Message = fmt.Sprintf("\"%s\"", r.Message)
-					return r, nil
-				},
+			interceptors: []grpc.UnaryServerInterceptor{
+				grpc.UnaryServerInterceptor(
+					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+						ret, err := handler(ctx, arg)
+						if err != nil {
+							return nil, err
+						}
+						r := ret.(*HelloReply)
+						r.Message = fmt.Sprintf("\"%s\"", r.Message)
+						return r, nil
+					},
+				),
 			},
 			wantErr: false,
 			want: &want{
@@ -221,17 +223,18 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				return req, nil
 			},
 			cb: nil,
-			interceptors: []func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error){
-
-				func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-					ret, err := rpc(ctx, arg)
-					if err != nil {
-						return nil, err
-					}
-					r := ret.(*HelloReply)
-					r.Message = fmt.Sprintf("**%s**", r.Message)
-					return r, nil
-				},
+			interceptors: []grpc.UnaryServerInterceptor{
+				grpc.UnaryServerInterceptor(
+					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+						ret, err := handler(ctx, arg)
+						if err != nil {
+							return nil, err
+						}
+						r := ret.(*HelloReply)
+						r.Message = fmt.Sprintf("**%s**", r.Message)
+						return r, nil
+					},
+				),
 			},
 			wantErr: false,
 			want: &want{
