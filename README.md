@@ -245,6 +245,45 @@ You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is
 
 If nil is passed to the callback, the error is always handled as an InternalServerError.
 
+grpc.UnaryServerInterceptor
+---------------------------
+
+The convert method can receive multiple [grpc.UnaryServerInterceptor](https://godoc.org/google.golang.org/grpc#UnaryServerInterceptor).
+
+Execution is done in left-to-right order, including passing of context.
+
+For example, it is executed in the order described in the comments in the following example.
+
+```go
+conv := NewGreeterHTTPConverter(&EchoGreeterServer{})
+conv.SayHello(nil,
+	grpc.UnaryServerInterceptor(
+		func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			// one (before RPC is called)
+			ret, err := handler(ctx, arg)
+			// four (after RPC is called)
+			return ret, err
+		},
+	),
+	grpc.UnaryServerInterceptor(
+		func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			// two (before RPC is called)
+			ret, err := handler(ctx, arg)
+			// three (after RPC is called)
+			return ret, err
+		},
+	),
+)
+```
+
+If you passed interceptors, you must call handler to return the correct return type.
+
+If interceptors return the return value that is not expected by the RPC, http.Handler will pass an error like the following to the http handle callback and exit.
+
+```
+/helloworld.Greeter/SayHello: interceptors have not return HelloReply
+```
+
 NOT SUPPORTED
 -------------
 
