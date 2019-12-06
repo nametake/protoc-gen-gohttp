@@ -20,6 +20,7 @@ import (
 
 type targetFile struct {
 	Name     string
+	Pkg      string
 	GoPkg    string
 	Services []*targetService
 }
@@ -268,6 +269,7 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 
 	f := &targetFile{
 		Name:     file.GetName(),
+		Pkg:      file.GetPackage(),
 		GoPkg:    file.GetOptions().GetGoPackage(),
 		Services: make([]*targetService, 0),
 	}
