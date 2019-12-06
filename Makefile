@@ -6,7 +6,7 @@ install:
 gen_example: install
 	@protoc --go_out=plugins=grpc:./examples/ --gohttp_out=./examples/ -I examples ./examples/*.proto
 
-test:
+test: gen_example
 	@go test ./...
 
 test_example:

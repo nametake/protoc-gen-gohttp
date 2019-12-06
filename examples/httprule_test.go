@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/grpc"
 )
 
 func TestMessaging_GetMessage(t *testing.T) {
@@ -25,7 +26,7 @@ func TestMessaging_GetMessage(t *testing.T) {
 		name         string
 		reqFunc      func() (*http.Request, error)
 		cb           func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
-		interceptors []func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)
+		interceptors []grpc.UnaryServerInterceptor
 		wantErr      bool
 		want         *want
 	}{
@@ -77,17 +78,18 @@ func TestMessaging_GetMessage(t *testing.T) {
 				return req, nil
 			},
 			cb: nil,
-			interceptors: []func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error){
-
-				func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-					ret, err := rpc(ctx, arg)
-					if err != nil {
-						return nil, err
-					}
-					r := ret.(*GetMessageResponse)
-					r.Message = fmt.Sprintf("\"%s\"", r.Message)
-					return r, nil
-				},
+			interceptors: []grpc.UnaryServerInterceptor{
+				grpc.UnaryServerInterceptor(
+					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+						ret, err := handler(ctx, arg)
+						if err != nil {
+							return nil, err
+						}
+						r := ret.(*GetMessageResponse)
+						r.Message = fmt.Sprintf("\"%s\"", r.Message)
+						return r, nil
+					},
+				),
 			},
 			wantErr: false,
 			want: &want{
@@ -110,17 +112,18 @@ func TestMessaging_GetMessage(t *testing.T) {
 			},
 			cb:      nil,
 			wantErr: false,
-			interceptors: []func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error){
-
-				func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-					ret, err := rpc(ctx, arg)
-					if err != nil {
-						return nil, err
-					}
-					r := ret.(*GetMessageResponse)
-					r.Message = fmt.Sprintf("**%s**", r.Message)
-					return r, nil
-				},
+			interceptors: []grpc.UnaryServerInterceptor{
+				grpc.UnaryServerInterceptor(
+					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+						ret, err := handler(ctx, arg)
+						if err != nil {
+							return nil, err
+						}
+						r := ret.(*GetMessageResponse)
+						r.Message = fmt.Sprintf("**%s**", r.Message)
+						return r, nil
+					},
+				),
 			},
 			want: &want{
 				StatusCode: http.StatusOK,

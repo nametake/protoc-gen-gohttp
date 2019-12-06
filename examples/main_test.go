@@ -23,7 +23,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 	var tests = []struct {
 		name         string
 		reqFunc      func() (*http.Request, error)
-		cb           func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret interface{}, err error)
+		cb           func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
 		interceptors []grpc.UnaryServerInterceptor
 		wantErr      bool
 		want         *want
@@ -91,7 +91,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
-			cb: func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret interface{}, err error) {
+			cb: func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 				if arg != nil {
 					t.Errorf("arg is not nil: %#v", arg)
 				}
@@ -190,6 +190,17 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 							return nil, err
 						}
 						r := ret.(*HelloReply)
+						r.Message = fmt.Sprintf("~%s~", r.Message)
+						return r, nil
+					},
+				),
+				grpc.UnaryServerInterceptor(
+					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+						ret, err := handler(ctx, arg)
+						if err != nil {
+							return nil, err
+						}
+						r := ret.(*HelloReply)
 						r.Message = fmt.Sprintf("\"%s\"", r.Message)
 						return r, nil
 					},
@@ -200,7 +211,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				StatusCode:  200,
 				ContentType: "application/json",
 				Resp: &HelloReply{
-					Message: "\"Hello, John!\"",
+					Message: "~\"Hello, John!\"~",
 				},
 			},
 		},

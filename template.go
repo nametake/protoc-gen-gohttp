@@ -26,6 +26,7 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -47,7 +48,7 @@ func New{{ $service.Name }}HTTPConverter(srv {{ $service.Name }}Server) *{{ $ser
 //
 // {{ $method.Comment }}
 {{ end -}}
-func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) http.HandlerFunc {
+func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -103,30 +104,38 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 		}
 
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.{{ $method.Name }}(ctx, r.(* {{ $method.Arg }}))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/{{ $.Pkg }}.{{ $service.Name }}/{{ $method.Name }}",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.{{ $method.Name }}(ctx, req.(* {{ $method.Arg }}))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*{{ $method.Ret }})
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/{{ $.Pkg }}.{{ $service.Name }}/{{ $method.Name }}: interceptors have not return {{ $method.Ret }}"))
 			return
 		}
 
@@ -177,12 +186,12 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 //
 // {{ $method.Comment }}
 {{ end -}}
-func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}WithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}WithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "{{ $service.Name }}", "{{ $method.Name }}", h.{{ $method.Name }}(cb, interceptors...)
 }
 
 {{ if $method.HTTPRule -}}
-func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -257,32 +266,39 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 		{{ end -}}
 		{{ end }}
 
-
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.{{ $method.Name }}(ctx, r.(* {{ $method.Arg }}))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/{{ $.Pkg }}.{{ $service.Name }}/{{ $method.Name }}",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.{{ $method.Name }}(ctx, req.(* {{ $method.Arg }}))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*{{ $method.Ret }})
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/{{ $.Pkg }}.{{ $service.Name }}/{{ $method.Name }}: interceptors have not return {{ $method.Ret }}"))
 			return
 		}
 

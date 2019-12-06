@@ -98,6 +98,7 @@ type targetService struct {
 type targetMethod struct {
 	Name                     string
 	Arg                      string
+	Ret                      string
 	Comment                  string
 	HTTPRule                 *targetHTTPRule
 	QueryParams              []*targetQueryParam
@@ -292,6 +293,7 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 			s.Methods = append(s.Methods, &targetMethod{
 				Name:        method.GetName(),
 				Arg:         ioname(method.GetInputType()),
+				Ret:         ioname(method.GetOutputType()),
 				Comment:     method.GetComments().GetLeading(),
 				HTTPRule:    httpRule,
 				QueryParams: parseQueryParam(method, file.GetMessages()),

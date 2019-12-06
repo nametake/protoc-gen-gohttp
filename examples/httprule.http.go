@@ -16,6 +16,7 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,7 +34,7 @@ func NewMessagingHTTPConverter(srv MessagingServer) *MessagingHTTPConverter {
 }
 
 // GetMessage returns MessagingServer interface's GetMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) http.HandlerFunc {
+func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -89,30 +90,38 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 		}
 
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.GetMessage(ctx, r.(*GetMessageRequest))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/helloworld.Messaging/GetMessage",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.GetMessage(ctx, req.(*GetMessageRequest))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*GetMessageResponse)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/GetMessage: interceptors have not return GetMessageResponse"))
 			return
 		}
 
@@ -159,11 +168,11 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 }
 
 // GetMessageWithName returns Service name, Method name and MessagingServer interface's GetMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "Messaging", "GetMessage", h.GetMessage(cb, interceptors...)
 }
 
-func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -209,30 +218,38 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 		arg.MessageId = p[3]
 
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.GetMessage(ctx, r.(*GetMessageRequest))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/helloworld.Messaging/GetMessage",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.GetMessage(ctx, req.(*GetMessageRequest))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*GetMessageResponse)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/GetMessage: interceptors have not return GetMessageResponse"))
 			return
 		}
 
@@ -279,7 +296,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 }
 
 // UpdateMessage returns MessagingServer interface's UpdateMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) http.HandlerFunc {
+func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -335,30 +352,38 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 		}
 
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.UpdateMessage(ctx, r.(*UpdateMessageRequest))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/helloworld.Messaging/UpdateMessage",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.UpdateMessage(ctx, req.(*UpdateMessageRequest))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*UpdateMessageResponse)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/UpdateMessage: interceptors have not return UpdateMessageResponse"))
 			return
 		}
 
@@ -405,11 +430,11 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 }
 
 // UpdateMessageWithName returns Service name, Method name and MessagingServer interface's UpdateMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) UpdateMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) UpdateMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "Messaging", "UpdateMessage", h.UpdateMessage(cb, interceptors...)
 }
 
-func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -470,30 +495,38 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 		arg.Sub.Subfield = p[4]
 
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.UpdateMessage(ctx, r.(*UpdateMessageRequest))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/helloworld.Messaging/UpdateMessage",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.UpdateMessage(ctx, req.(*UpdateMessageRequest))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*UpdateMessageResponse)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/UpdateMessage: interceptors have not return UpdateMessageResponse"))
 			return
 		}
 
@@ -540,7 +573,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 }
 
 // CreateMessage returns MessagingServer interface's CreateMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) http.HandlerFunc {
+func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -596,30 +629,38 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 		}
 
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.CreateMessage(ctx, r.(*CreateMessageRequest))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/helloworld.Messaging/CreateMessage",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.CreateMessage(ctx, req.(*CreateMessageRequest))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*CreateMessageResponse)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/CreateMessage: interceptors have not return CreateMessageResponse"))
 			return
 		}
 
@@ -666,11 +707,11 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 }
 
 // CreateMessageWithName returns Service name, Method name and MessagingServer interface's CreateMessage converted to http.HandlerFunc.
-func (h *MessagingHTTPConverter) CreateMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) CreateMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "Messaging", "CreateMessage", h.CreateMessage(cb, interceptors...)
 }
 
-func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error)) (string, string, http.HandlerFunc) {
+func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -734,30 +775,38 @@ func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Conte
 		arg.Msg.Sub.Subfield = p[4]
 
 		n := len(interceptors)
-		chained := func(ctx context.Context, arg proto.Message, rpc func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error) {
-			chainer := func(
-				currentInter func(context.Context, proto.Message, func(context.Context, proto.Message) (proto.Message, error)) (proto.Message, error),
-				currentHandler func(context.Context, proto.Message) (proto.Message, error),
-			) func(context.Context, proto.Message) (proto.Message, error) {
-				return func(currentCtx context.Context, currentReq proto.Message) (proto.Message, error) {
-					return currentInter(currentCtx, currentReq, currentHandler)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
 				}
 			}
 
-			chainedRPC := rpc
+			chainedHandler := handler
 			for i := n - 1; i >= 0; i-- {
-				chainedRPC = chainer(interceptors[i], chainedRPC)
+				chainedHandler = chainer(interceptors[i], chainedHandler)
 			}
-			return chainedRPC(ctx, arg)
+			return chainedHandler(ctx, arg)
 		}
 
-		rpc := func(c context.Context, r proto.Message) (proto.Message, error) {
-			return h.srv.CreateMessage(ctx, r.(*CreateMessageRequest))
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/helloworld.Messaging/CreateMessage",
 		}
 
-		ret, err := chained(ctx, arg, rpc)
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.CreateMessage(ctx, req.(*CreateMessageRequest))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*CreateMessageResponse)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/CreateMessage: interceptors have not return CreateMessageResponse"))
 			return
 		}
 
