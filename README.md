@@ -111,7 +111,7 @@ func main() {
 	conv := NewGreeterHTTPConverter(srv)
 
 	// Register SayHello HandlerFunc to the server.
-	// If you do not need a callback, pass nil as argument.
+	// If you do not need a http handle callback, pass nil as argument.
 	http.Handle("/sayhello", conv.SayHello(logCallback))
 	// If you want to create a path from Proto's service name and method name, use the SayHelloWithName method.
 	// In this case, the strings 'Greeter' and 'SayHello' are returned.
@@ -223,12 +223,14 @@ When you actually execute the above server and execute `curl -H "Content-Type: a
 }
 ```
 
-Callback
---------
+HTTP Handle Callback
+--------------------
 
-Callback is called when the end of the generated code is reached without error or when an error occurs.
+A http handle callback is a function to handle RPC calls with HTTP.
 
-Callback is passed HTTP context and http.ResponseWriter and http.Request, RPC arguments and return values, and error.
+It is called when the end of the generated code is reached without error or when an error occurs.
+
+The callback is passed HTTP context and http.ResponseWriter and http.Request, RPC arguments and return values, and error.
 
 RPC arguments and return values, and errors may be nil. Here's when nil is passed:
 
@@ -241,7 +243,46 @@ RPC arguments and return values, and errors may be nil. Here's when nil is passe
 
 You **MUST HANDLE ERROR** in the callback. If you do not handle it, the error is ignored.
 
-If nil is passed to callback, the error is always handled as an InternalServerError.
+If nil is passed to the callback, the error is always handled as an InternalServerError.
+
+grpc.UnaryServerInterceptor
+---------------------------
+
+The convert method can receive multiple [grpc.UnaryServerInterceptor](https://godoc.org/google.golang.org/grpc#UnaryServerInterceptor).
+
+Execution is done in left-to-right order, including passing of context.
+
+For example, it is executed in the order described in the comments in the following example.
+
+```go
+conv := NewGreeterHTTPConverter(&EchoGreeterServer{})
+conv.SayHello(nil,
+	grpc.UnaryServerInterceptor(
+		func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			// one (before RPC is called)
+			ret, err := handler(ctx, arg)
+			// four (after RPC is called)
+			return ret, err
+		},
+	),
+	grpc.UnaryServerInterceptor(
+		func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			// two (before RPC is called)
+			ret, err := handler(ctx, arg)
+			// three (after RPC is called)
+			return ret, err
+		},
+	),
+)
+```
+
+If you passed interceptors, you must call handler to return the correct return type.
+
+If interceptors return the return value that is not expected by the RPC, http.Handler will pass an error like the following to the http handle callback and exit.
+
+```
+/helloworld.Greeter/SayHello: interceptors have not return HelloReply
+```
 
 NOT SUPPORTED
 -------------
@@ -252,4 +293,5 @@ NOT SUPPORTED
 	-	[selector](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.string.google.api.HttpRule.selector)
 	-	[additional_bindings](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.repeated.google.api.HttpRule.google.api.HttpRule.additional_bindings)
 	-	[custom](https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.FIELDS.google.api.CustomHttpPattern.google.api.HttpRule.custom)
+-	`enum` type query string
 -	`map` type query string

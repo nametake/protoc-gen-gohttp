@@ -15,6 +15,7 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -34,7 +35,7 @@ func NewGreeterHTTPConverter(srv GreeterServer) *GreeterHTTPConverter {
 // SayHello returns GreeterServer interface's SayHello converted to http.HandlerFunc.
 //
 // SayHello says hello.
-func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -89,9 +90,39 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 			}
 		}
 
-		ret, err := h.srv.SayHello(ctx, arg)
+		n := len(interceptors)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
+				}
+			}
+
+			chainedHandler := handler
+			for i := n - 1; i >= 0; i-- {
+				chainedHandler = chainer(interceptors[i], chainedHandler)
+			}
+			return chainedHandler(ctx, arg)
+		}
+
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/helloworld.Greeter/SayHello",
+		}
+
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.SayHello(ctx, req.(*HelloRequest))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*HelloReply)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Greeter/SayHello: interceptors have not return HelloReply"))
 			return
 		}
 
@@ -140,6 +171,6 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 // SayHelloWithName returns Service name, Method name and GreeterServer interface's SayHello converted to http.HandlerFunc.
 //
 // SayHello says hello.
-func (h *GreeterHTTPConverter) SayHelloWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
-	return "Greeter", "SayHello", h.SayHello(cb)
+func (h *GreeterHTTPConverter) SayHelloWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
+	return "Greeter", "SayHello", h.SayHello(cb, interceptors...)
 }

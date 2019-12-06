@@ -17,6 +17,7 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -34,7 +35,7 @@ func NewAllPatternHTTPConverter(srv AllPatternServer) *AllPatternHTTPConverter {
 }
 
 // AllPattern returns AllPatternServer interface's AllPattern converted to http.HandlerFunc.
-func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -89,9 +90,39 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 			}
 		}
 
-		ret, err := h.srv.AllPattern(ctx, arg)
+		n := len(interceptors)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
+				}
+			}
+
+			chainedHandler := handler
+			for i := n - 1; i >= 0; i-- {
+				chainedHandler = chainer(interceptors[i], chainedHandler)
+			}
+			return chainedHandler(ctx, arg)
+		}
+
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/main.AllPattern/AllPattern",
+		}
+
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.AllPattern(ctx, req.(*AllPatternMessage))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*AllPatternMessage)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.AllPattern/AllPattern: interceptors have not return AllPatternMessage"))
 			return
 		}
 
@@ -138,11 +169,11 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 }
 
 // AllPatternWithName returns Service name, Method name and AllPatternServer interface's AllPattern converted to http.HandlerFunc.
-func (h *AllPatternHTTPConverter) AllPatternWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
-	return "AllPattern", "AllPattern", h.AllPattern(cb)
+func (h *AllPatternHTTPConverter) AllPatternWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
+	return "AllPattern", "AllPattern", h.AllPattern(cb, interceptors...)
 }
 
-func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
+func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -424,9 +455,39 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			}
 		}
 
-		ret, err := h.srv.AllPattern(ctx, arg)
+		n := len(interceptors)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
+				}
+			}
+
+			chainedHandler := handler
+			for i := n - 1; i >= 0; i-- {
+				chainedHandler = chainer(interceptors[i], chainedHandler)
+			}
+			return chainedHandler(ctx, arg)
+		}
+
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/main.AllPattern/AllPattern",
+		}
+
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.AllPattern(ctx, req.(*AllPatternMessage))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*AllPatternMessage)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.AllPattern/AllPattern: interceptors have not return AllPatternMessage"))
 			return
 		}
 

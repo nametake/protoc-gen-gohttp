@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/grpc"
 )
 
 func TestMessaging_GetMessage(t *testing.T) {
@@ -21,11 +23,12 @@ func TestMessaging_GetMessage(t *testing.T) {
 		Resp       *GetMessageResponse
 	}
 	tests := []struct {
-		name    string
-		reqFunc func() (*http.Request, error)
-		cb      func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
-		wantErr bool
-		want    *want
+		name         string
+		reqFunc      func() (*http.Request, error)
+		cb           func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
+		interceptors []grpc.UnaryServerInterceptor
+		wantErr      bool
+		want         *want
 	}{
 		{
 			name: "GET method and Content-Type JSON",
@@ -67,6 +70,72 @@ func TestMessaging_GetMessage(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "GET method and Content-Type JSON with interceptors",
+			reqFunc: func() (*http.Request, error) {
+				req := httptest.NewRequest(http.MethodGet, "/v1/messages/abc1234?message=hello&tags=a&tags=b", nil)
+				req.Header.Set("Content-Type", "application/json")
+				return req, nil
+			},
+			cb: nil,
+			interceptors: []grpc.UnaryServerInterceptor{
+				grpc.UnaryServerInterceptor(
+					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+						ret, err := handler(ctx, arg)
+						if err != nil {
+							return nil, err
+						}
+						r := ret.(*GetMessageResponse)
+						r.Message = fmt.Sprintf("\"%s\"", r.Message)
+						return r, nil
+					},
+				),
+			},
+			wantErr: false,
+			want: &want{
+				StatusCode: http.StatusOK,
+				Method:     http.MethodGet,
+				Path:       "/v1/messages/{message_id}",
+				Resp: &GetMessageResponse{
+					MessageId: "abc1234",
+					Message:   "\"hello\"",
+					Tags:      []string{"a", "b"},
+				},
+			},
+		},
+		{
+			name: "GET method and Content-Type Protobuf",
+			reqFunc: func() (*http.Request, error) {
+				req := httptest.NewRequest(http.MethodGet, "/v1/messages/foobar?message=goodbye&tags=one&tags=two", nil)
+				req.Header.Set("Content-Type", "application/protobuf")
+				return req, nil
+			},
+			cb:      nil,
+			wantErr: false,
+			interceptors: []grpc.UnaryServerInterceptor{
+				grpc.UnaryServerInterceptor(
+					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+						ret, err := handler(ctx, arg)
+						if err != nil {
+							return nil, err
+						}
+						r := ret.(*GetMessageResponse)
+						r.Message = fmt.Sprintf("**%s**", r.Message)
+						return r, nil
+					},
+				),
+			},
+			want: &want{
+				StatusCode: http.StatusOK,
+				Method:     http.MethodGet,
+				Path:       "/v1/messages/{message_id}",
+				Resp: &GetMessageResponse{
+					MessageId: "foobar",
+					Message:   "**goodbye**",
+					Tags:      []string{"one", "two"},
+				},
+			},
+		},
 	}
 
 	handler := NewMessagingHTTPConverter(&Messaging{})
@@ -80,7 +149,7 @@ func TestMessaging_GetMessage(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			method, path, h := handler.GetMessageHTTPRule(tt.cb)
+			method, path, h := handler.GetMessageHTTPRule(tt.cb, tt.interceptors...)
 			h.ServeHTTP(rec, req)
 
 			var resp *GetMessageResponse

@@ -15,6 +15,7 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -32,7 +33,7 @@ func NewTestServiceHTTPConverter(srv TestServiceServer) *TestServiceHTTPConverte
 }
 
 // UnaryCall returns TestServiceServer interface's UnaryCall converted to http.HandlerFunc.
-func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) http.HandlerFunc {
+func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 			if err != nil {
@@ -87,9 +88,39 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 			}
 		}
 
-		ret, err := h.srv.UnaryCall(ctx, arg)
+		n := len(interceptors)
+		chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {
+				return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {
+					return currentInter(currentCtx, currentReq, info, currentHandler)
+				}
+			}
+
+			chainedHandler := handler
+			for i := n - 1; i >= 0; i-- {
+				chainedHandler = chainer(interceptors[i], chainedHandler)
+			}
+			return chainedHandler(ctx, arg)
+		}
+
+		info := &grpc.UnaryServerInfo{
+			Server:     h.srv,
+			FullMethod: "/grpc.testing.TestService/UnaryCall",
+		}
+
+		handler := func(c context.Context, req interface{}) (interface{}, error) {
+			return h.srv.UnaryCall(ctx, req.(*Request))
+		}
+
+		iret, err := chained(ctx, arg, info, handler)
 		if err != nil {
 			cb(ctx, w, r, arg, nil, err)
+			return
+		}
+
+		ret, ok := iret.(*Response)
+		if !ok {
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/grpc.testing.TestService/UnaryCall: interceptors have not return Response"))
 			return
 		}
 
@@ -136,6 +167,6 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 }
 
 // UnaryCallWithName returns Service name, Method name and TestServiceServer interface's UnaryCall converted to http.HandlerFunc.
-func (h *TestServiceHTTPConverter) UnaryCallWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)) (string, string, http.HandlerFunc) {
-	return "TestService", "UnaryCall", h.UnaryCall(cb)
+func (h *TestServiceHTTPConverter) UnaryCallWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
+	return "TestService", "UnaryCall", h.UnaryCall(cb, interceptors...)
 }

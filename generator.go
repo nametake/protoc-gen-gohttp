@@ -21,6 +21,7 @@ import (
 type targetFile struct {
 	Name     string
 	Pkg      string
+	GoPkg    string
 	Services []*targetService
 }
 
@@ -97,6 +98,7 @@ type targetService struct {
 type targetMethod struct {
 	Name                     string
 	Arg                      string
+	Ret                      string
 	Comment                  string
 	HTTPRule                 *targetHTTPRule
 	QueryParams              []*targetQueryParam
@@ -268,7 +270,8 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 
 	f := &targetFile{
 		Name:     file.GetName(),
-		Pkg:      file.GetOptions().GetGoPackage(),
+		Pkg:      file.GetPackage(),
+		GoPkg:    file.GetOptions().GetGoPackage(),
 		Services: make([]*targetService, 0),
 	}
 
@@ -290,6 +293,7 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 			s.Methods = append(s.Methods, &targetMethod{
 				Name:        method.GetName(),
 				Arg:         ioname(method.GetInputType()),
+				Ret:         ioname(method.GetOutputType()),
 				Comment:     method.GetComments().GetLeading(),
 				HTTPRule:    httpRule,
 				QueryParams: parseQueryParam(method, file.GetMessages()),
