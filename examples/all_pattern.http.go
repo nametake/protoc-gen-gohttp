@@ -111,7 +111,7 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.AllPattern(ctx, req.(*AllPatternMessage))
+			return h.srv.AllPattern(c, req.(*AllPatternMessage))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
@@ -476,7 +476,7 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.AllPattern(ctx, req.(*AllPatternMessage))
+			return h.srv.AllPattern(c, req.(*AllPatternMessage))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)

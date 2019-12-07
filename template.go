@@ -124,7 +124,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.{{ $method.Name }}(ctx, req.(* {{ $method.Arg }}))
+			return h.srv.{{ $method.Name }}(c, req.(* {{ $method.Arg }}))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
@@ -287,7 +287,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.{{ $method.Name }}(ctx, req.(* {{ $method.Arg }}))
+			return h.srv.{{ $method.Name }}(c, req.(* {{ $method.Arg }}))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)

@@ -110,7 +110,7 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.GetMessage(ctx, req.(*GetMessageRequest))
+			return h.srv.GetMessage(c, req.(*GetMessageRequest))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
@@ -238,7 +238,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.GetMessage(ctx, req.(*GetMessageRequest))
+			return h.srv.GetMessage(c, req.(*GetMessageRequest))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
@@ -372,7 +372,7 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.UpdateMessage(ctx, req.(*UpdateMessageRequest))
+			return h.srv.UpdateMessage(c, req.(*UpdateMessageRequest))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
@@ -515,7 +515,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.UpdateMessage(ctx, req.(*UpdateMessageRequest))
+			return h.srv.UpdateMessage(c, req.(*UpdateMessageRequest))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
@@ -649,7 +649,7 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.CreateMessage(ctx, req.(*CreateMessageRequest))
+			return h.srv.CreateMessage(c, req.(*CreateMessageRequest))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
@@ -795,7 +795,7 @@ func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Conte
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.CreateMessage(ctx, req.(*CreateMessageRequest))
+			return h.srv.CreateMessage(c, req.(*CreateMessageRequest))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)

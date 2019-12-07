@@ -109,7 +109,7 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.GetFeature(ctx, req.(*Point))
+			return h.srv.GetFeature(c, req.(*Point))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)

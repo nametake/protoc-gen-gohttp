@@ -109,7 +109,7 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.SayHello(ctx, req.(*HelloRequest))
+			return h.srv.SayHello(c, req.(*HelloRequest))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
