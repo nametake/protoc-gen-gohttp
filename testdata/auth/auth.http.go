@@ -109,7 +109,7 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
-			return h.srv.UnaryCall(ctx, req.(*Request))
+			return h.srv.UnaryCall(c, req.(*Request))
 		}
 
 		iret, err := chained(ctx, arg, info, handler)
