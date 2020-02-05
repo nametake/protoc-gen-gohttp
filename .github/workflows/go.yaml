@@ -7,32 +7,28 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
           version: 1.13
-
       - name: Checkout
         uses: actions/checkout@master
-
       - name: Setup protoc
         env:
-          PROTOC_VERSION: "3.5.1"
-        run: |
-          curl -fo protoc.zip -sSL "https://github.com/google/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
-          mkdir protoc
-          unzip -q protoc.zip -d protoc
-          sudo install -m 755 ./protoc/bin/protoc /usr/local/bin/
-          sudo cp -a ./protoc/include/google /usr/local/include/
-          rm protoc.zip protoc -rf
-
+          PROTOC_VERSION: "3.7.1"
+        run: >
+          curl -fo protoc.zip -sSL
+            "https://github.com/google/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip";
+          mkdir protoc;
+          unzip -q protoc.zip -d protoc;
+          sudo install -m 755 ./protoc/bin/protoc /usr/local/bin/;
+          sudo cp -a ./protoc/include/google /usr/local/include/;
+          rm protoc.zip protoc -rf;
       - name: Setup protoc-gen-go
         env:
           GO111MODULE: "off"
         run: |
           go get -u github.com/golang/protobuf/protoc-gen-go
-
       - name: Test
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
