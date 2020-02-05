@@ -138,11 +138,11 @@ var fileDescriptor_dbc0f6d3f1c21037 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // MultiGreeterClient is the client API for MultiGreeter service.
 //
@@ -152,10 +152,10 @@ type MultiGreeterClient interface {
 }
 
 type multiGreeterClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewMultiGreeterClient(cc *grpc.ClientConn) MultiGreeterClient {
+func NewMultiGreeterClient(cc grpc.ClientConnInterface) MultiGreeterClient {
 	return &multiGreeterClient{cc}
 }
 
