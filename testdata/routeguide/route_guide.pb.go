@@ -316,11 +316,11 @@ var fileDescriptor_d1dc806a642578ec = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // RouteGuideClient is the client API for RouteGuide service.
 //
@@ -333,10 +333,10 @@ type RouteGuideClient interface {
 }
 
 type routeGuideClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewRouteGuideClient(cc *grpc.ClientConn) RouteGuideClient {
+func NewRouteGuideClient(cc grpc.ClientConnInterface) RouteGuideClient {
 	return &routeGuideClient{cc}
 }
 

@@ -15,6 +15,10 @@ test_example:
 run_examples:
 	@go run examples/main.go examples/greeter.pb.go examples/greeter.http.go
 
+update_libs:
+	@go get -u  github.com/golang/protobuf google.golang.org/grpc
+	@go mod tidy
+
 curl_google_api:
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > examples/google/api/annotations.proto 
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > examples/google/api/http.proto
