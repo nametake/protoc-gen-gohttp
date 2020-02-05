@@ -16,14 +16,14 @@ jobs:
       - name: Setup protoc
         env:
           PROTOC_VERSION: "3.7.1"
-        run: |
+        run: >
           curl -fo protoc.zip -sSL \
-            "https://github.com/google/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
-          mkdir protoc
-          unzip -q protoc.zip -d protoc
-          sudo install -m 755 ./protoc/bin/protoc /usr/local/bin/
-          sudo cp -a ./protoc/include/google /usr/local/include/
-          rm protoc.zip protoc -rf
+            "https://github.com/google/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip";
+          mkdir protoc;
+          unzip -q protoc.zip -d protoc;
+          sudo install -m 755 ./protoc/bin/protoc /usr/local/bin/;
+          sudo cp -a ./protoc/include/google /usr/local/include/;
+          rm protoc.zip protoc -rf;
       - name: Setup protoc-gen-go
         env:
           GO111MODULE: "off"
