@@ -263,6 +263,21 @@ func Generate(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, 
 	}, nil
 }
 
+// TODO refactor to targetFile method
+func genPkg(goPackage string) string {
+	sc := strings.Index(goPackage, ";")
+	if sc >= 0 {
+		return goPackage[sc+1:]
+	}
+
+	slash := strings.LastIndex(goPackage, "/")
+	if slash >= 0 {
+		return goPackage[slash+1:]
+	}
+
+	return goPackage
+}
+
 func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 	if len(file.GetServices()) == 0 {
 		return nil, nil
@@ -271,7 +286,7 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 	f := &targetFile{
 		Name:     file.GetName(),
 		Pkg:      file.GetPackage(),
-		GoPkg:    file.GetOptions().GetGoPackage(),
+		GoPkg:    genPkg(file.GetOptions().GetGoPackage()),
 		Services: make([]*targetService, 0),
 	}
 
