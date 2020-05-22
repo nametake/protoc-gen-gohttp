@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestAllPattern_AllPattern(t *testing.T) {
@@ -41,20 +42,21 @@ func TestAllPattern_AllPattern(t *testing.T) {
 				Method:     http.MethodGet,
 				Path:       "/all/pattern",
 				Resp: &AllPatternMessage{
-					// Empty array
-					RepeatedDouble:   make([]float64, 0),
-					RepeatedFloat:    make([]float32, 0),
-					RepeatedInt32:    make([]int32, 0),
-					RepeatedInt64:    make([]int64, 0),
-					RepeatedUint32:   make([]uint32, 0),
-					RepeatedUint64:   make([]uint64, 0),
-					RepeatedFixed32:  make([]uint32, 0),
-					RepeatedFixed64:  make([]uint64, 0),
-					RepeatedSfixed32: make([]int32, 0),
-					RepeatedSfixed64: make([]int64, 0),
-					RepeatedBool:     make([]bool, 0),
-					RepeatedString:   make([]string, 0),
-					RepeatedBytes:    make([][]byte, 0),
+					String_:          "",
+					Bytes:            nil,
+					RepeatedDouble:   nil,
+					RepeatedFloat:    nil,
+					RepeatedInt32:    nil,
+					RepeatedInt64:    nil,
+					RepeatedUint32:   nil,
+					RepeatedUint64:   nil,
+					RepeatedFixed32:  nil,
+					RepeatedFixed64:  nil,
+					RepeatedSfixed32: nil,
+					RepeatedSfixed64: nil,
+					RepeatedBool:     nil,
+					RepeatedString:   nil,
+					RepeatedBytes:    nil,
 				},
 			},
 		},
@@ -250,6 +252,8 @@ func TestAllPattern_AllPattern(t *testing.T) {
 		},
 	}
 
+	opts := cmpopts.IgnoreUnexported(AllPatternMessage{})
+
 	handler := NewAllPatternHTTPConverter(&AllPattern{})
 
 	for _, tt := range tests {
@@ -287,7 +291,7 @@ func TestAllPattern_AllPattern(t *testing.T) {
 				Resp:       resp,
 			}
 
-			if diff := cmp.Diff(actual, tt.want); diff != "" {
+			if diff := cmp.Diff(actual, tt.want, opts); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})
