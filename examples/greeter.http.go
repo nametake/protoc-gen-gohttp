@@ -105,7 +105,7 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 
 		info := &grpc.UnaryServerInfo{
 			Server:     h.srv,
-			FullMethod: "/helloworld.Greeter/SayHello",
+			FullMethod: "/main.Greeter/SayHello",
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
@@ -120,7 +120,7 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 
 		ret, ok := iret.(*HelloReply)
 		if !ok {
-			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Greeter/SayHello: interceptors have not return HelloReply"))
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.Greeter/SayHello: interceptors have not return HelloReply"))
 			return
 		}
 
