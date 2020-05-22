@@ -4,7 +4,7 @@ install:
 	@go get
 
 gen_example: install
-	@protoc --go_out=plugins=grpc:./examples/ --gohttp_out=./examples/ -I examples ./examples/*.proto
+	@protoc --go_out=plugins=grpc:./examples/ --gohttp_out=./examples/ --go_opt=paths=source_relative -Iexamples ./examples/*.proto
 
 test: gen_example
 	@go test ./...

@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/grpc"
 )
 
@@ -138,6 +139,11 @@ func TestMessaging_GetMessage(t *testing.T) {
 		},
 	}
 
+	opts := cmpopts.IgnoreUnexported(
+		GetMessageRequest{},
+		GetMessageResponse{},
+	)
+
 	handler := NewMessagingHTTPConverter(&Messaging{})
 
 	for _, tt := range tests {
@@ -175,7 +181,7 @@ func TestMessaging_GetMessage(t *testing.T) {
 				Resp:       resp,
 			}
 
-			if diff := cmp.Diff(actual, tt.want); diff != "" {
+			if diff := cmp.Diff(actual, tt.want, opts); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})
@@ -261,6 +267,12 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 		},
 	}
 
+	opts := cmpopts.IgnoreUnexported(
+		UpdateMessageRequest{},
+		UpdateMessageResponse{},
+		SubMessage{},
+	)
+
 	handler := NewMessagingHTTPConverter(&Messaging{})
 
 	for _, tt := range tests {
@@ -298,7 +310,7 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 				Resp:       resp,
 			}
 
-			if diff := cmp.Diff(actual, tt.want); diff != "" {
+			if diff := cmp.Diff(actual, tt.want, opts); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})
@@ -394,6 +406,14 @@ func TestMessaging_CreateMessage(t *testing.T) {
 		},
 	}
 
+	opts := cmpopts.IgnoreUnexported(
+		CreateMessageRequest{},
+		CreateMessageResponse{},
+		CreateMessageRequest_Message{},
+		CreateMessageResponse_Message{},
+		SubMessage{},
+	)
+
 	handler := NewMessagingHTTPConverter(&Messaging{})
 
 	for _, tt := range tests {
@@ -431,7 +451,7 @@ func TestMessaging_CreateMessage(t *testing.T) {
 				Resp:       resp,
 			}
 
-			if diff := cmp.Diff(actual, tt.want); diff != "" {
+			if diff := cmp.Diff(actual, tt.want, opts); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})

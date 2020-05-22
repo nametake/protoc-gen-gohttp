@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package helloworld;
+package main;
 
-option go_package = "main";
+option go_package = "github.com/nametake/protoc-gen-gohttp/examples;main";
 
 import "google/api/annotations.proto";
 

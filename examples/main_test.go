@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/grpc"
 )
 
@@ -258,6 +259,11 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 		},
 	}
 
+	opts := cmpopts.IgnoreUnexported(
+		HelloRequest{},
+		HelloReply{},
+	)
+
 	handler := NewGreeterHTTPConverter(&EchoGreeterServer{})
 
 	for _, tt := range tests {
@@ -294,7 +300,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				Resp:        resp,
 			}
 
-			if diff := cmp.Diff(actual, tt.want); diff != "" {
+			if diff := cmp.Diff(actual, tt.want, opts); diff != "" {
 				t.Errorf("%s", diff)
 			}
 		})

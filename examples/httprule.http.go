@@ -106,7 +106,7 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 
 		info := &grpc.UnaryServerInfo{
 			Server:     h.srv,
-			FullMethod: "/helloworld.Messaging/GetMessage",
+			FullMethod: "/main.Messaging/GetMessage",
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
@@ -121,7 +121,7 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 
 		ret, ok := iret.(*GetMessageResponse)
 		if !ok {
-			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/GetMessage: interceptors have not return GetMessageResponse"))
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.Messaging/GetMessage: interceptors have not return GetMessageResponse"))
 			return
 		}
 
@@ -234,7 +234,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 
 		info := &grpc.UnaryServerInfo{
 			Server:     h.srv,
-			FullMethod: "/helloworld.Messaging/GetMessage",
+			FullMethod: "/main.Messaging/GetMessage",
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
@@ -249,7 +249,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 
 		ret, ok := iret.(*GetMessageResponse)
 		if !ok {
-			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/GetMessage: interceptors have not return GetMessageResponse"))
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.Messaging/GetMessage: interceptors have not return GetMessageResponse"))
 			return
 		}
 
@@ -368,7 +368,7 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 
 		info := &grpc.UnaryServerInfo{
 			Server:     h.srv,
-			FullMethod: "/helloworld.Messaging/UpdateMessage",
+			FullMethod: "/main.Messaging/UpdateMessage",
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
@@ -383,7 +383,7 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 
 		ret, ok := iret.(*UpdateMessageResponse)
 		if !ok {
-			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/UpdateMessage: interceptors have not return UpdateMessageResponse"))
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.Messaging/UpdateMessage: interceptors have not return UpdateMessageResponse"))
 			return
 		}
 
@@ -511,7 +511,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 
 		info := &grpc.UnaryServerInfo{
 			Server:     h.srv,
-			FullMethod: "/helloworld.Messaging/UpdateMessage",
+			FullMethod: "/main.Messaging/UpdateMessage",
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
@@ -526,7 +526,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 
 		ret, ok := iret.(*UpdateMessageResponse)
 		if !ok {
-			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/UpdateMessage: interceptors have not return UpdateMessageResponse"))
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.Messaging/UpdateMessage: interceptors have not return UpdateMessageResponse"))
 			return
 		}
 
@@ -645,7 +645,7 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 
 		info := &grpc.UnaryServerInfo{
 			Server:     h.srv,
-			FullMethod: "/helloworld.Messaging/CreateMessage",
+			FullMethod: "/main.Messaging/CreateMessage",
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
@@ -660,7 +660,7 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 
 		ret, ok := iret.(*CreateMessageResponse)
 		if !ok {
-			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/CreateMessage: interceptors have not return CreateMessageResponse"))
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.Messaging/CreateMessage: interceptors have not return CreateMessageResponse"))
 			return
 		}
 
@@ -791,7 +791,7 @@ func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Conte
 
 		info := &grpc.UnaryServerInfo{
 			Server:     h.srv,
-			FullMethod: "/helloworld.Messaging/CreateMessage",
+			FullMethod: "/main.Messaging/CreateMessage",
 		}
 
 		handler := func(c context.Context, req interface{}) (interface{}, error) {
@@ -806,7 +806,7 @@ func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Conte
 
 		ret, ok := iret.(*CreateMessageResponse)
 		if !ok {
-			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Messaging/CreateMessage: interceptors have not return CreateMessageResponse"))
+			cb(ctx, w, r, arg, nil, fmt.Errorf("/main.Messaging/CreateMessage: interceptors have not return CreateMessageResponse"))
 			return
 		}
 
