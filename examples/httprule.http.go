@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"reflect"
 	"strings"
@@ -40,7 +41,7 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -62,7 +63,7 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 		ctx := r.Context()
 
 		arg := &GetMessageRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -178,7 +179,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -200,7 +201,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 		ctx := r.Context()
 
 		arg := &GetMessageRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("message"); v != "" {
 				arg.Message = v
@@ -302,7 +303,7 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -324,7 +325,7 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 		ctx := r.Context()
 
 		arg := &UpdateMessageRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -440,7 +441,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -462,7 +463,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 		ctx := r.Context()
 
 		arg := &UpdateMessageRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -579,7 +580,7 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -601,7 +602,7 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 		ctx := r.Context()
 
 		arg := &CreateMessageRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -717,7 +718,7 @@ func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Conte
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -739,7 +740,7 @@ func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Conte
 		ctx := r.Context()
 
 		arg := &CreateMessageRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
