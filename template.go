@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	{{ if .IsImportReflect -}}
 	"reflect"
@@ -54,7 +55,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -76,7 +77,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 		ctx := r.Context()
 
 		arg := &{{ $method.Arg }}{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -197,7 +198,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -219,7 +220,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}HTTPRule(cb func(ct
 		ctx := r.Context()
 
 		arg := &{{ $method.Arg }}{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		{{ if $method.GetQueryParams -}}
 		if r.Method == http.MethodGet {
 		{{ range $k, $queryParam := $method.GetQueryParams -}}
