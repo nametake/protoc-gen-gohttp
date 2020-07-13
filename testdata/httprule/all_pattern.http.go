@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"strconv"
 	"strings"
@@ -41,7 +42,7 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -63,7 +64,7 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 		ctx := r.Context()
 
 		arg := &AllPatternRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -179,7 +180,7 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				p := status.New(codes.Unknown, err.Error()).Proto()
-				switch r.Header.Get("Content-Type") {
+				switch contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); contentType {
 				case "application/protobuf", "application/x-protobuf":
 					buf, err := proto.Marshal(p)
 					if err != nil {
@@ -201,7 +202,7 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 		ctx := r.Context()
 
 		arg := &AllPatternRequest{}
-		contentType := r.Header.Get("Content-Type")
+		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("double"); v != "" {
 				d, err := strconv.ParseFloat(v, 64)
