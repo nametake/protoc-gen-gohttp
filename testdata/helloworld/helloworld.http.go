@@ -21,19 +21,25 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// GreeterHTTPConverter has a function to convert GreeterServer interface to http.HandlerFunc.
+// GreeterHTTPService is the server API for Greeter service.
+type GreeterHTTPService interface {
+	// SayHello says hello.
+	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
+}
+
+// GreeterHTTPConverter has a function to convert GreeterHTTPService interface to http.HandlerFunc.
 type GreeterHTTPConverter struct {
-	srv GreeterServer
+	srv GreeterHTTPService
 }
 
 // NewGreeterHTTPConverter returns GreeterHTTPConverter.
-func NewGreeterHTTPConverter(srv GreeterServer) *GreeterHTTPConverter {
+func NewGreeterHTTPConverter(srv GreeterHTTPService) *GreeterHTTPConverter {
 	return &GreeterHTTPConverter{
 		srv: srv,
 	}
 }
 
-// SayHello returns GreeterServer interface's SayHello converted to http.HandlerFunc.
+// SayHello returns GreeterHTTPService interface's SayHello converted to http.HandlerFunc.
 //
 // SayHello says hello.
 func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
@@ -169,7 +175,7 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 	})
 }
 
-// SayHelloWithName returns Service name, Method name and GreeterServer interface's SayHello converted to http.HandlerFunc.
+// SayHelloWithName returns Service name, Method name and GreeterHTTPService interface's SayHello converted to http.HandlerFunc.
 //
 // SayHello says hello.
 func (h *GreeterHTTPConverter) SayHelloWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {

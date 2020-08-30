@@ -21,19 +21,24 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// TestServiceHTTPConverter has a function to convert TestServiceServer interface to http.HandlerFunc.
+// TestServiceHTTPService is the server API for TestService service.
+type TestServiceHTTPService interface {
+	UnaryCall(context.Context, *Request) (*Response, error)
+}
+
+// TestServiceHTTPConverter has a function to convert TestServiceHTTPService interface to http.HandlerFunc.
 type TestServiceHTTPConverter struct {
-	srv TestServiceServer
+	srv TestServiceHTTPService
 }
 
 // NewTestServiceHTTPConverter returns TestServiceHTTPConverter.
-func NewTestServiceHTTPConverter(srv TestServiceServer) *TestServiceHTTPConverter {
+func NewTestServiceHTTPConverter(srv TestServiceHTTPService) *TestServiceHTTPConverter {
 	return &TestServiceHTTPConverter{
 		srv: srv,
 	}
 }
 
-// UnaryCall returns TestServiceServer interface's UnaryCall converted to http.HandlerFunc.
+// UnaryCall returns TestServiceHTTPService interface's UnaryCall converted to http.HandlerFunc.
 func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -167,7 +172,7 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 	})
 }
 
-// UnaryCallWithName returns Service name, Method name and TestServiceServer interface's UnaryCall converted to http.HandlerFunc.
+// UnaryCallWithName returns Service name, Method name and TestServiceHTTPService interface's UnaryCall converted to http.HandlerFunc.
 func (h *TestServiceHTTPConverter) UnaryCallWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "TestService", "UnaryCall", h.UnaryCall(cb, interceptors...)
 }
