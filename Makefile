@@ -12,6 +12,9 @@ gen_pb:
 test:
 	@go test ./... ./_examples/
 
+test_gen:
+	@go test ./...
+
 test_examples:
 	@go test ./_examples/
 
