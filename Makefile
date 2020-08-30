@@ -3,25 +3,25 @@ GO111MODULE=on
 install:
 	@go get
 
-gen_example: install
-	@protoc --go_out=plugins=grpc:./examples/ --gohttp_out=./examples/ --go_opt=paths=source_relative -Iexamples ./examples/*.proto
+gen_examples: install
+	@protoc --go_out=plugins=grpc:./_examples/ --gohttp_out=./_examples/ --go_opt=paths=source_relative -I_examples ./_examples/*.proto
 
-test: gen_example
-	@go test ./...
+test:
+	@go test ./... ./_examples/
 
-test_example:
-	@go test ./examples/...
+test_examples:
+	@go test ./_examples/
 
 run_examples:
-	@go run examples/main.go examples/greeter.pb.go examples/greeter.http.go
+	@go run _examples/main.go _examples/greeter.pb.go _examples/greeter.http.go
 
 update_libs:
 	@go get -u  github.com/golang/protobuf google.golang.org/grpc
 	@go mod tidy
 
 curl_google_api:
-	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > examples/google/api/annotations.proto 
-	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > examples/google/api/http.proto
+	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > _examples/google/api/annotations.proto 
+	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > _examples/google/api/http.proto
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > testdata/google/api/annotations.proto 
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > testdata/google/api/http.proto
 

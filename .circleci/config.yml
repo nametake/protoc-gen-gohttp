@@ -5,8 +5,8 @@ jobs:
     docker:
       - image: circleci/golang:1.12
         environment:
-          GO111MODULE: "on"
-          PROTOC_VERSION: "3.5.1"
+          GO111MODULE: 'on'
+          PROTOC_VERSION: '3.5.1'
     working_directory: /go/src/github.com/nametake/protoc-gen-gohttp
     steps:
       - checkout
@@ -23,8 +23,10 @@ jobs:
           name: install protoc-gen-go
           command: go get -u github.com/golang/protobuf/protoc-gen-go
           environment:
-            GO111MODULE: "off"
-      - run: make test
+            GO111MODULE: 'off'
+      - run: |
+          make gen_examples
+          make test
 
 workflows:
   version: 2
