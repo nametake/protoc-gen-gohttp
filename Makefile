@@ -3,16 +3,16 @@ GO111MODULE=on
 install:
 	@go get
 
-gen_example: install
+gen_examples: install
 	@protoc --go_out=plugins=grpc:./_examples/ --gohttp_out=./_examples/ --go_opt=paths=source_relative -I_examples ./_examples/*.proto
 
 test:
-	@go test ./...
+	@go test ./... ./_examples/
 
-test_example:
-	@go test ./_examples/...
+test_examples:
+	@go test ./_examples/
 
-run__examples:
+run_examples:
 	@go run _examples/main.go _examples/greeter.pb.go _examples/greeter.http.go
 
 update_libs:

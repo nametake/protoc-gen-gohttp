@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@master
       - name: Setup protoc
         env:
-          PROTOC_VERSION: "3.7.1"
+          PROTOC_VERSION: '3.7.1'
         run: >
           curl -fo protoc.zip -sSL \
             "https://github.com/google/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip";
@@ -26,10 +26,11 @@ jobs:
           rm protoc.zip protoc -rf;
       - name: Setup protoc-gen-go
         env:
-          GO111MODULE: "off"
+          GO111MODULE: 'off'
         run: |
           go get -u github.com/golang/protobuf/protoc-gen-go
       - name: Test
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
+          make gen_examples
           make test
