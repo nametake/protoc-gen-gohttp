@@ -32,19 +32,29 @@ import (
 	"google.golang.org/grpc/status"
 )
 {{ range $i, $service := .Services }}
-// {{ $service.Name }}HTTPConverter has a function to convert {{ $service.Name }}Server interface to http.HandlerFunc.
+// {{ $service.Name }}HTTPService is the server API for {{ $service.Name }} service.
+type {{ $service.Name }}HTTPService interface {
+	{{ range $j, $method := $service.Methods -}}
+	{{ if ne $method.Comment "" -}}
+	// {{ $method.Comment }}
+	{{ end -}}
+	{{ $method.Name }}(context.Context, *{{ $method.Arg }}) (*{{ $method.Ret }}, error)
+	{{ end -}}
+}
+
+// {{ $service.Name }}HTTPConverter has a function to convert {{ $service.Name }}HTTPService interface to http.HandlerFunc.
 type {{ $service.Name }}HTTPConverter struct {
-	srv {{ $service.Name }}Server
+	srv {{ $service.Name }}HTTPService
 }
 
 // New{{ $service.Name }}HTTPConverter returns {{ $service.Name }}HTTPConverter.
-func New{{ $service.Name }}HTTPConverter(srv {{ $service.Name }}Server) *{{ $service.Name }}HTTPConverter {
+func New{{ $service.Name }}HTTPConverter(srv {{ $service.Name }}HTTPService) *{{ $service.Name }}HTTPConverter {
 	return &{{ $service.Name }}HTTPConverter{
 		srv: srv,
 	}
 }
 {{ range $j, $method := $service.Methods }}
-// {{ $method.Name }} returns {{ $service.Name }}Server interface's {{ $method.Name }} converted to http.HandlerFunc.
+// {{ $method.Name }} returns {{ $service.Name }}HTTPService interface's {{ $method.Name }} converted to http.HandlerFunc.
 {{ if ne $method.Comment "" -}}
 //
 // {{ $method.Comment }}
@@ -182,7 +192,7 @@ func (h *{{ $service.Name }}HTTPConverter) {{ $method.Name }}(cb func(ctx contex
 	})
 }
 
-// {{ $method.Name }}WithName returns Service name, Method name and {{ $service.Name }}Server interface's {{ $method.Name }} converted to http.HandlerFunc.
+// {{ $method.Name }}WithName returns Service name, Method name and {{ $service.Name }}HTTPService interface's {{ $method.Name }} converted to http.HandlerFunc.
 {{ if ne $method.Comment "" -}}
 //
 // {{ $method.Comment }}

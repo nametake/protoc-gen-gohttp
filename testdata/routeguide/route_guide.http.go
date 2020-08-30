@@ -24,9 +24,6 @@ import (
 // RouteGuideHTTPService is the server API for RouteGuide service.
 type RouteGuideHTTPService interface {
 	GetFeature(context.Context, *Point) (*Feature, error)
-	ListFeatures(*Rectangle, RouteGuide_ListFeaturesServer) error
-	RecordRoute(RouteGuide_RecordRouteServer) error
-	RouteChat(RouteGuide_RouteChatServer) error
 }
 
 // RouteGuideHTTPConverter has a function to convert RouteGuideHTTPService interface to http.HandlerFunc.
