@@ -23,19 +23,24 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// AllPatternHTTPConverter has a function to convert AllPatternServer interface to http.HandlerFunc.
+// AllPatternHTTPService is the server API for AllPattern service.
+type AllPatternHTTPService interface {
+	AllPattern(context.Context, *AllPatternMessage) (*AllPatternMessage, error)
+}
+
+// AllPatternHTTPConverter has a function to convert AllPatternHTTPService interface to http.HandlerFunc.
 type AllPatternHTTPConverter struct {
-	srv AllPatternServer
+	srv AllPatternHTTPService
 }
 
 // NewAllPatternHTTPConverter returns AllPatternHTTPConverter.
-func NewAllPatternHTTPConverter(srv AllPatternServer) *AllPatternHTTPConverter {
+func NewAllPatternHTTPConverter(srv AllPatternHTTPService) *AllPatternHTTPConverter {
 	return &AllPatternHTTPConverter{
 		srv: srv,
 	}
 }
 
-// AllPattern returns AllPatternServer interface's AllPattern converted to http.HandlerFunc.
+// AllPattern returns AllPatternHTTPService interface's AllPattern converted to http.HandlerFunc.
 func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -169,7 +174,7 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 	})
 }
 
-// AllPatternWithName returns Service name, Method name and AllPatternServer interface's AllPattern converted to http.HandlerFunc.
+// AllPatternWithName returns Service name, Method name and AllPatternHTTPService interface's AllPattern converted to http.HandlerFunc.
 func (h *AllPatternHTTPConverter) AllPatternWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "AllPattern", "AllPattern", h.AllPattern(cb, interceptors...)
 }

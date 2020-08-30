@@ -22,19 +22,26 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// MessagingHTTPConverter has a function to convert MessagingServer interface to http.HandlerFunc.
+// MessagingHTTPService is the server API for Messaging service.
+type MessagingHTTPService interface {
+	GetMessage(context.Context, *GetMessageRequest) (*GetMessageResponse, error)
+	UpdateMessage(context.Context, *UpdateMessageRequest) (*UpdateMessageResponse, error)
+	CreateMessage(context.Context, *CreateMessageRequest) (*CreateMessageResponse, error)
+}
+
+// MessagingHTTPConverter has a function to convert MessagingHTTPService interface to http.HandlerFunc.
 type MessagingHTTPConverter struct {
-	srv MessagingServer
+	srv MessagingHTTPService
 }
 
 // NewMessagingHTTPConverter returns MessagingHTTPConverter.
-func NewMessagingHTTPConverter(srv MessagingServer) *MessagingHTTPConverter {
+func NewMessagingHTTPConverter(srv MessagingHTTPService) *MessagingHTTPConverter {
 	return &MessagingHTTPConverter{
 		srv: srv,
 	}
 }
 
-// GetMessage returns MessagingServer interface's GetMessage converted to http.HandlerFunc.
+// GetMessage returns MessagingHTTPService interface's GetMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -168,7 +175,7 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 	})
 }
 
-// GetMessageWithName returns Service name, Method name and MessagingServer interface's GetMessage converted to http.HandlerFunc.
+// GetMessageWithName returns Service name, Method name and MessagingHTTPService interface's GetMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "Messaging", "GetMessage", h.GetMessage(cb, interceptors...)
 }
@@ -296,7 +303,7 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 	})
 }
 
-// UpdateMessage returns MessagingServer interface's UpdateMessage converted to http.HandlerFunc.
+// UpdateMessage returns MessagingHTTPService interface's UpdateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -430,7 +437,7 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 	})
 }
 
-// UpdateMessageWithName returns Service name, Method name and MessagingServer interface's UpdateMessage converted to http.HandlerFunc.
+// UpdateMessageWithName returns Service name, Method name and MessagingHTTPService interface's UpdateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) UpdateMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "Messaging", "UpdateMessage", h.UpdateMessage(cb, interceptors...)
 }
@@ -573,7 +580,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 	})
 }
 
-// CreateMessage returns MessagingServer interface's CreateMessage converted to http.HandlerFunc.
+// CreateMessage returns MessagingHTTPService interface's CreateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) http.HandlerFunc {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -707,7 +714,7 @@ func (h *MessagingHTTPConverter) CreateMessage(cb func(ctx context.Context, w ht
 	})
 }
 
-// CreateMessageWithName returns Service name, Method name and MessagingServer interface's CreateMessage converted to http.HandlerFunc.
+// CreateMessageWithName returns Service name, Method name and MessagingHTTPService interface's CreateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) CreateMessageWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	return "Messaging", "CreateMessage", h.CreateMessage(cb, interceptors...)
 }
