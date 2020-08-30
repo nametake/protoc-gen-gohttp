@@ -6,6 +6,9 @@ install:
 gen_examples: install
 	@protoc --go_out=plugins=grpc:./_examples/ --gohttp_out=./_examples/ --go_opt=paths=source_relative -I_examples ./_examples/*.proto
 
+gen_pb:
+	@protoc --go_out=plugins=grpc:./testdata/ --gohttp_out=./testdata/ --go_opt=paths=source_relative -I testdata ./testdata/**/*.proto
+
 test:
 	@go test ./... ./_examples/
 
