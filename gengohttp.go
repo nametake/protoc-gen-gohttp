@@ -5,5 +5,11 @@ import (
 )
 
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
-	panic("not implemented")
+	filename := file.GeneratedFilenamePrefix + ".http.go"
+	g := gen.NewGeneratedFile(filename, file.GoImportPath)
+
+	g.P("// comment")
+	g.P("package main")
+
+	return g
 }
