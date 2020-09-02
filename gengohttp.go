@@ -4,9 +4,10 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// var (
-// 	bytesPackage   = protogen.GoImportPath("bytes")
-// 	contextPackage = protogen.GoImportPath("context")
+var (
+	// 	bytesPackage   = protogen.GoImportPath("bytes")
+	contextPackage = protogen.GoImportPath("context")
+
 // 	base64Package  = protogen.GoImportPath("encoding/base64")
 // 	jsonPackage    = protogen.GoImportPath("encoding/json")
 // 	fmtPackage     = protogen.GoImportPath("fmt")
@@ -16,7 +17,7 @@ import (
 // 	httpPackage    = protogen.GoImportPath("net/http")
 // 	strconvPackage = protogen.GoImportPath("strconv")
 // 	stringsPackage = protogen.GoImportPath("strings")
-// )
+)
 
 // var (
 // 	jsonpbPackage = protogen.GoImportPath("github.com/golang/protobuf/jsonpb")
@@ -43,9 +44,18 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 }
 
 func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
-	g.P("// ", srv.GoName, " is the server API for Greeter service.")
-	g.P("type ", srv.GoName, " interface {")
-	// // SayHello says hello.
-	// SayHello(context.Context, *HelloRequest) (*HelloReply, error)
+	g.P("// ", srv.GoName, "HTTPService is the server API for ", srv.GoName, " service.")
+	g.P("type ", srv.GoName, "HTTPService interface {")
+	for _, method := range srv.Methods {
+		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
+			continue
+		}
+		g.P(method.GoName, "(", contextPackage.Ident("Context"), ", *", method.Input.GoIdent.GoName, ") (*", method.Output.GoIdent.GoName, ", error)")
+	}
+	g.P("}")
+
+	g.P("// ", srv.GoName, "HTTPConverter has a function to convert ", srv.GoName, "HTTPService interface to http.HandlerFunc.")
+	g.P("type ", srv.GoName, "HTTPConverter struct {")
+	g.P("srv ", srv.GoName, "HTTPService")
 	g.P("}")
 }
