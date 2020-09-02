@@ -35,5 +35,17 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.P()
 	g.P("package ", file.GoPackageName)
 
+	for _, srv := range file.Services {
+		genService(g, srv)
+	}
+
 	return g
+}
+
+func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
+	g.P("// ", srv.GoName, " is the server API for Greeter service.")
+	g.P("type ", srv.GoName, " interface {")
+	// // SayHello says hello.
+	// SayHello(context.Context, *HelloRequest) (*HelloReply, error)
+	g.P("}")
 }
