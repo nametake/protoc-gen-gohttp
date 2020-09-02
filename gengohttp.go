@@ -6,6 +6,28 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// var (
+// 	bytesPackage   = protogen.GoImportPath("bytes")
+// 	contextPackage = protogen.GoImportPath("context")
+// 	base64Package  = protogen.GoImportPath("encoding/base64")
+// 	jsonPackage    = protogen.GoImportPath("encoding/json")
+// 	fmtPackage     = protogen.GoImportPath("fmt")
+// 	ioPackage      = protogen.GoImportPath("io")
+// 	ioutilPackage  = protogen.GoImportPath("io/ioutil")
+// 	mimePackage    = protogen.GoImportPath("mime")
+// 	httpPackage    = protogen.GoImportPath("net/http")
+// 	strconvPackage = protogen.GoImportPath("strconv")
+// 	stringsPackage = protogen.GoImportPath("strings")
+// )
+
+// var (
+// 	jsonpbPackage = protogen.GoImportPath("github.com/golang/protobuf/jsonpb")
+// 	protoPackage  = protogen.GoImportPath("github.com/golang/protobuf/proto")
+// 	grpcPackage   = protogen.GoImportPath("google.golang.org/grpc")
+// 	codesPackage  = protogen.GoImportPath("google.golang.org/grpc/codes")
+// 	statusPackage = protogen.GoImportPath("google.golang.org/grpc/status")
+// )
+
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
 	filename := file.GeneratedFilenamePrefix + ".http.go"
 	g := gen.NewGeneratedFile(filename, file.GoImportPath)
