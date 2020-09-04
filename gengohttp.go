@@ -8,24 +8,26 @@ var (
 	// 	bytesPackage   = protogen.GoImportPath("bytes")
 	contextPackage = protogen.GoImportPath("context")
 
-// 	base64Package  = protogen.GoImportPath("encoding/base64")
-// 	jsonPackage    = protogen.GoImportPath("encoding/json")
-// 	fmtPackage     = protogen.GoImportPath("fmt")
-// 	ioPackage      = protogen.GoImportPath("io")
-// 	ioutilPackage  = protogen.GoImportPath("io/ioutil")
-// 	mimePackage    = protogen.GoImportPath("mime")
-// 	httpPackage    = protogen.GoImportPath("net/http")
+	// 	base64Package  = protogen.GoImportPath("encoding/base64")
+	// 	jsonPackage    = protogen.GoImportPath("encoding/json")
+	// 	fmtPackage     = protogen.GoImportPath("fmt")
+	// 	ioPackage      = protogen.GoImportPath("io")
+	// 	ioutilPackage  = protogen.GoImportPath("io/ioutil")
+	// 	mimePackage    = protogen.GoImportPath("mime")
+	httpPackage = protogen.GoImportPath("net/http")
+
 // 	strconvPackage = protogen.GoImportPath("strconv")
 // 	stringsPackage = protogen.GoImportPath("strings")
 )
 
-// var (
-// 	jsonpbPackage = protogen.GoImportPath("github.com/golang/protobuf/jsonpb")
-// 	protoPackage  = protogen.GoImportPath("github.com/golang/protobuf/proto")
-// 	grpcPackage   = protogen.GoImportPath("google.golang.org/grpc")
+var (
+	jsonpbPackage = protogen.GoImportPath("github.com/golang/protobuf/jsonpb")
+	protoPackage  = protogen.GoImportPath("github.com/golang/protobuf/proto")
+	grpcPackage   = protogen.GoImportPath("google.golang.org/grpc")
+
 // 	codesPackage  = protogen.GoImportPath("google.golang.org/grpc/codes")
 // 	statusPackage = protogen.GoImportPath("google.golang.org/grpc/status")
-// )
+)
 
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
 	filename := file.GeneratedFilenamePrefix + ".http.go"
@@ -43,6 +45,24 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	return g
 }
 
+func callbackSignature(g *protogen.GeneratedFile) string {
+	return "func(ctx " +
+		g.QualifiedGoIdent(contextPackage.Ident("Context")) +
+		", w " +
+		g.QualifiedGoIdent(httpPackage.Ident("ResponseWriter")) +
+		", r *" +
+		g.QualifiedGoIdent(httpPackage.Ident("Request")) +
+		", arg, ret " +
+		g.QualifiedGoIdent(protoPackage.Ident("Message")) +
+		", err error)"
+}
+
+func methodSignature(g *protogen.GeneratedFile, srv *protogen.Service, method *protogen.Method) string {
+	return "func (h *" + srv.GoName + "HTTPConverter) " +
+		method.GoName + "(cb " + callbackSignature(g) + ", interceptors ..." + g.QualifiedGoIdent(grpcPackage.Ident("UnaryServerInterceptor")) + ") " +
+		g.QualifiedGoIdent(httpPackage.Ident("HandlerFunc"))
+}
+
 func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
 	g.P("// ", srv.GoName, "HTTPService is the server API for ", srv.GoName, " service.")
 	g.P("type ", srv.GoName, "HTTPService interface {")
@@ -54,8 +74,132 @@ func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
 	}
 	g.P("}")
 
+	g.QualifiedGoIdent(jsonpbPackage.Ident(""))
+
 	g.P("// ", srv.GoName, "HTTPConverter has a function to convert ", srv.GoName, "HTTPService interface to http.HandlerFunc.")
 	g.P("type ", srv.GoName, "HTTPConverter struct {")
 	g.P("srv ", srv.GoName, "HTTPService")
 	g.P("}")
+
+	for _, method := range srv.Methods {
+		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
+			continue
+		}
+
+		g.P("// ", method.GoName, " returns ", srv.GoName, "HTTPService interface's ", method.GoName, " converted to http.HandlerFunc.")
+		g.P(methodSignature(g, srv, method), " {")
+		g.P("return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {")
+		g.P("ctx := r.Context()")
+		g.P("")
+		g.P("arg := &", method.Input.GoIdent.GoName, "{}")
+		g.P("contentType, _, _ := mime.ParseMediaType(r.Header.Get(\"Content-Type\"))")
+		g.P("if r.Method != http.MethodGet {")
+		g.P("body, err := ioutil.ReadAll(r.Body)")
+		g.P("if err != nil {")
+		g.P("cb(ctx, w, r, nil, nil, err)")
+		g.P("return")
+		g.P("}")
+		g.P("")
+		g.P("switch contentType {")
+		g.P("case \"application/protobuf\", \"application/x-protobuf\":")
+		g.P("if err := proto.Unmarshal(body, arg); err != nil {")
+		g.P("cb(ctx, w, r, nil, nil, err)")
+		g.P("return")
+		g.P("}")
+		g.P("case \"application/json\":")
+		g.P("if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {")
+		g.P("cb(ctx, w, r, nil, nil, err)")
+		g.P("return")
+		g.P("}")
+		g.P("default:")
+		g.P("w.WriteHeader(http.StatusUnsupportedMediaType)")
+		g.P("_, err := fmt.Fprintf(w, \"Unsupported Content-Type: %s\", contentType)")
+		g.P("cb(ctx, w, r, nil, nil, err)")
+		g.P("return")
+		g.P("}")
+		g.P("}")
+		g.P("")
+		g.P("n := len(interceptors)")
+		g.P("chained := func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {")
+		g.P("chainer := func(currentInter grpc.UnaryServerInterceptor, currentHandler grpc.UnaryHandler) grpc.UnaryHandler {")
+		g.P("return func(currentCtx context.Context, currentReq interface{}) (interface{}, error) {")
+		g.P("return currentInter(currentCtx, currentReq, info, currentHandler)")
+		g.P("}")
+		g.P("}")
+		g.P("")
+		g.P("chainedHandler := handler")
+		g.P("for i := n - 1; i >= 0; i-- {")
+		g.P("chainedHandler = chainer(interceptors[i], chainedHandler)")
+		g.P("}")
+		g.P("return chainedHandler(ctx, arg)")
+		g.P("}")
+		g.P("")
+		g.P("info := &grpc.UnaryServerInfo{")
+		g.P("Server:     h.srv,")
+		g.P("FullMethod: \"/httprule.", srv.Desc.Name, "/", method.Desc.Name, "\",")
+		g.P("}")
+		g.P("")
+		g.P("handler := func(c context.Context, req interface{}) (interface{}, error) {")
+		g.P("return h.srv.AllPattern(c, req.(*", method.Input.GoIdent.GoName, "))")
+		g.P("}")
+		g.P("")
+		g.P("iret, err := chained(ctx, arg, info, handler)")
+		g.P("if err != nil {")
+		g.P("cb(ctx, w, r, arg, nil, err)")
+		g.P("return")
+		g.P("}")
+		g.P("")
+		g.P("ret, ok := iret.(*", method.Output.GoIdent.GoName, ")")
+		g.P("if !ok {")
+		g.P("cb(ctx, w, r, arg, nil, fmt.Errorf(\"/httprule.", srv.Desc.Name, "/", method.Desc.Name, ": interceptors have not return ", method.Output.GoIdent.GoName, "\"))")
+		g.P("return")
+		g.P("}")
+		g.P("")
+		g.P("accepts := strings.Split(r.Header.Get(\"Accept\"), \",\")")
+		g.P("accept := accepts[0]")
+		g.P("if accept == \"*/*\" || accept == \"\" {")
+		g.P("if contentType != \"\" {")
+		g.P("accept = contentType")
+		g.P("} else {")
+		g.P("accept = \"application/json\"")
+		g.P("}")
+		g.P("}")
+		g.P("")
+		g.P("w.Header().Set(\"Content-Type\", accept)")
+		g.P("")
+		g.P("switch accept {")
+		g.P("case \"application/protobuf\", \"application/x-protobuf\":")
+		g.P("buf, err := proto.Marshal(ret)")
+		g.P("if err != nil {")
+		g.P("cb(ctx, w, r, arg, ret, err)")
+		g.P("return")
+		g.P("}")
+		g.P("if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {")
+		g.P("cb(ctx, w, r, arg, ret, err)")
+		g.P("return")
+		g.P("}")
+		g.P("case \"application/json\":")
+		g.P("m := jsonpb.Marshaler{")
+		g.P("EnumsAsInts:  true,")
+		g.P("EmitDefaults: true,")
+		g.P("}")
+		g.P("if err := m.Marshal(w, ret); err != nil {")
+		g.P("cb(ctx, w, r, arg, ret, err)")
+		g.P("return")
+		g.P("}")
+		g.P("default:")
+		g.P("w.WriteHeader(http.StatusUnsupportedMediaType)")
+		g.P("_, err := fmt.Fprintf(w, \"Unsupported Accept: %s\", accept)")
+		g.P("cb(ctx, w, r, arg, ret, err)")
+		g.P("return")
+		g.P("}")
+		g.P("cb(ctx, w, r, arg, ret, nil)")
+		g.P("})")
+		g.P("}")
+		g.P("")
+		g.P("// AllPatternWithName returns Service name, Method name and AllPatternHTTPService interface's AllPattern converted to http.HandlerFunc.")
+		g.P("func (h *AllPatternHTTPConverter) AllPatternWithName(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {")
+		g.P("return \"AllPattern\", \"AllPattern\", h.AllPattern(cb, interceptors...)")
+		g.P("}")
+	}
 }
