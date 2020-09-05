@@ -56,8 +56,8 @@ func callbackSignature(g *protogen.GeneratedFile) string {
 		", err error)"
 }
 
-func methodSignature(g *protogen.GeneratedFile, srv *protogen.Service, method *protogen.Method) string {
-	return "func (h *" + srv.GoName + "HTTPConverter) " +
+func methodSignature(g *protogen.GeneratedFile, method *protogen.Method) string {
+	return "func (h *" + method.Parent.GoName + "HTTPConverter) " +
 		method.GoName + "(cb " + callbackSignature(g) + ", interceptors ..." + g.QualifiedGoIdent(grpcPackage.Ident("UnaryServerInterceptor")) + ") " +
 		g.QualifiedGoIdent(httpPackage.Ident("HandlerFunc"))
 }
@@ -112,7 +112,7 @@ func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
 		}
 
 		g.P("// ", method.GoName, " returns ", method.Parent.GoName, "HTTPService interface's ", method.GoName, " converted to http.HandlerFunc.")
-		g.P(methodSignature(g, srv, method), " {")
+		g.P(methodSignature(g, method), " {")
 		genDefaultCallback(g)
 		g.P("	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {")
 		g.P("		ctx := r.Context()")
