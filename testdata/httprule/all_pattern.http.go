@@ -4,23 +4,20 @@
 package httprulepb
 
 import (
-	"bytes"
-	"context"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"mime"
-	"net/http"
-	"strconv"
-	"strings"
-
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	bytes "bytes"
+	context "context"
+	json "encoding/json"
+	fmt "fmt"
+	jsonpb "github.com/golang/protobuf/jsonpb"
+	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	io "io"
+	ioutil "io/ioutil"
+	mime "mime"
+	http "net/http"
+	strings "strings"
 )
 
 // AllPatternHTTPService is the server API for AllPattern service.
