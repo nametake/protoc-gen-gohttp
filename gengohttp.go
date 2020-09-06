@@ -1,7 +1,10 @@
 package main
 
 import (
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 var (
@@ -54,6 +57,7 @@ func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
 
 		genMethod(g, method)
 		genMethodWithName(g, method)
+		genMethodHTTPRule(g, method)
 	}
 }
 
@@ -248,5 +252,23 @@ func genMethodWithName(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("// ", method.GoName, "WithName returns Service name, Method name and ", method.Parent.GoName, "HTTPService interface's ", method.GoName, " converted to http.HandlerFunc.")
 	g.P(methodSignature(g, method, "WithName"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
 	g.P("	return \"", method.Parent.GoName, "\", \"", method.GoName, "\", h.", method.GoName, "(cb, interceptors...)")
+	g.P("}")
+}
+
+func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) {
+	options, ok := method.Desc.Options().(*descriptorpb.MethodOptions)
+	if !ok {
+		return
+	}
+
+	httpRule, ok := proto.GetExtension(options, annotations.E_Http).(*annotations.HttpRule)
+	if !ok {
+		return
+	}
+
+	g.P(methodSignature(g, method, "HTTPRule"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
+
+	g.P("// ", httpRule.GetPost())
+
 	g.P("}")
 }
