@@ -8,7 +8,9 @@ func main() {
 	protogen.Options{}.Run(func(p *protogen.Plugin) error {
 		for _, f := range p.Files {
 			if f.Generate {
-				GenerateFile(p, f)
+				if _, err := GenerateFile(p, f); err != nil {
+					return nil
+				}
 			}
 		}
 

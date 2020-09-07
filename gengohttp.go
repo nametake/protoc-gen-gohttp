@@ -29,7 +29,7 @@ var (
 	statusPackage = protogen.GoImportPath("google.golang.org/grpc/status")
 )
 
-func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
+func GenerateFile(gen *protogen.Plugin, file *protogen.File) (*protogen.GeneratedFile, error) {
 	filename := file.GeneratedFilenamePrefix + ".http.go"
 	g := gen.NewGeneratedFile(filename, file.GoImportPath)
 
@@ -39,13 +39,15 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.P("package ", file.GoPackageName)
 
 	for _, srv := range file.Services {
-		genService(g, srv)
+		if err := genService(g, srv); err != nil {
+			return nil, err
+		}
 	}
 
-	return g
+	return g, nil
 }
 
-func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
+func genService(g *protogen.GeneratedFile, srv *protogen.Service) error {
 	genServiceInterface(g, srv)
 	genStruct(g, srv)
 	genConstructor(g, srv)
@@ -57,8 +59,12 @@ func genService(g *protogen.GeneratedFile, srv *protogen.Service) {
 
 		genMethod(g, method)
 		genMethodWithName(g, method)
-		genMethodHTTPRule(g, method)
+		if err := genMethodHTTPRule(g, method); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func callbackSignature(g *protogen.GeneratedFile) string {
@@ -255,15 +261,15 @@ func genMethodWithName(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("}")
 }
 
-func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) {
+func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error {
 	options, ok := method.Desc.Options().(*descriptorpb.MethodOptions)
 	if !ok {
-		return
+		return nil
 	}
 
 	httpRule, ok := proto.GetExtension(options, annotations.E_Http).(*annotations.HttpRule)
 	if !ok {
-		return
+		return nil
 	}
 
 	var (
@@ -288,7 +294,7 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) {
 		httpMethod = "http.MethodPatch"
 		pattern = httpRule.GetPatch()
 	default:
-		return
+		return nil
 	}
 
 	g.P(methodSignature(g, method, "HTTPRule"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
@@ -401,4 +407,6 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("		cb(ctx, w, r, arg, ret, nil)")
 	g.P("	})")
 	g.P("}")
+
+	return nil
 }
