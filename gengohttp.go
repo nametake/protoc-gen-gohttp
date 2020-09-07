@@ -297,6 +297,11 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 		return nil
 	}
 
+	targetPatterns, err := parsePattern(pattern)
+	if err != nil {
+		return err
+	}
+
 	g.P(methodSignature(g, method, "HTTPRule"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
 	genDefaultCallback(g)
 	g.P("	return ", httpMethod, ", \"", pattern, "\", ", httpPackage.Ident("HandlerFunc"), "(func(w ", httpPackage.Ident("ResponseWriter"), ", r *", httpPackage.Ident("Request"), ") {")
@@ -329,6 +334,20 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 	g.P("				return")
 	g.P("			}")
 	g.P("		}")
+	g.P("")
+
+	if len(targetPatterns) != 0 {
+		g.P("p := strings.Split(r.URL.Path, \"/\")")
+	}
+
+	for _, t := range targetPatterns {
+		for _, p := range t.GetPaths() {
+			g.P("reflect.ValueOf(&arg.", p, ").Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.", p, ").Elem()).Interface()))")
+		}
+
+		g.P("arg.", t.GetPath(), " = p[", t.Index, "]")
+	}
+
 	g.P("")
 	g.P("		n := len(interceptors)")
 	g.P("		chained := func(ctx ", contextPackage.Ident("Context"), ", arg interface{}, info *", grpcPackage.Ident("UnaryServerInfo"), ", handler ", grpcPackage.Ident("UnaryHandler"), ") (interface{}, error) {")
