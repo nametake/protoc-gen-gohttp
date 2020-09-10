@@ -111,6 +111,10 @@ func genDefaultCallback(g *protogen.GeneratedFile) {
 	g.P("}")
 }
 
+func genQueryParam(g *protogen.GeneratedFile, method *protogen.Method) {
+
+}
+
 func genServiceInterface(g *protogen.GeneratedFile, srv *protogen.Service) {
 	g.P("// ", srv.GoName, "HTTPService is the server API for ", srv.GoName, " service.")
 	g.P("type ", srv.GoName, "HTTPService interface {")
@@ -302,6 +306,8 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 		return err
 	}
 
+	queryParams := parseQueryParam(method)
+
 	g.P(methodSignature(g, method, "HTTPRule"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
 	genDefaultCallback(g)
 	g.P("	return ", httpMethod, ", \"", pattern, "\", ", httpPackage.Ident("HandlerFunc"), "(func(w ", httpPackage.Ident("ResponseWriter"), ", r *", httpPackage.Ident("Request"), ") {")
@@ -346,6 +352,10 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 		}
 
 		g.P("arg.", t.GetPath(), " = p[", t.Index, "]")
+	}
+
+	for _, p := range queryParams {
+		g.P("// ", p.Path)
 	}
 
 	g.P("")

@@ -16,6 +16,8 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pseudomuto/protokit"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type targetFile struct {
@@ -311,7 +313,7 @@ func genTarget(file *protokit.FileDescriptor) (*targetFile, error) {
 				Ret:         ioname(method.GetOutputType()),
 				Comment:     method.GetComments().GetLeading(),
 				HTTPRule:    httpRule,
-				QueryParams: parseQueryParam(method, file.GetMessages()),
+				QueryParams: parseQueryParamProtokit(method, file.GetMessages()),
 			})
 		}
 		// Add if Service has a method
@@ -375,7 +377,36 @@ func parseHTTPRule(md *protokit.MethodDescriptor) (*targetHTTPRule, error) {
 	return nil, nil
 }
 
-func parseQueryParam(md *protokit.MethodDescriptor, msgs []*protokit.Descriptor) []*targetQueryParam {
+type queryParam struct {
+	*protogen.Method
+
+	Path string
+}
+
+func parseQueryParam(method *protogen.Method) []*queryParam {
+	queryParams := make([]*queryParam, 0)
+
+	var f func(parent string, fields []*protogen.Field)
+
+	f = func(parent string, fields []*protogen.Field) {
+		for _, field := range fields {
+			if field.Desc.Kind() == protoreflect.MessageKind {
+				f(fmt.Sprintf("%s.", field.GoName), field.Message.Fields)
+				continue
+			}
+			queryParams = append(queryParams, &queryParam{
+				Method: method,
+				Path:   fmt.Sprintf("%s%s", parent, field.GoName),
+			})
+		}
+	}
+
+	f("", method.Input.Fields)
+
+	return queryParams
+}
+
+func parseQueryParamProtokit(md *protokit.MethodDescriptor, msgs []*protokit.Descriptor) []*targetQueryParam {
 	httpRule, ok := md.OptionExtensions["google.api.http"].(*annotations.HttpRule)
 	if !ok {
 		return nil
