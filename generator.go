@@ -378,7 +378,7 @@ func parseHTTPRule(md *protokit.MethodDescriptor) (*targetHTTPRule, error) {
 }
 
 type queryParam struct {
-	*protogen.Method
+	*protogen.Field
 
 	Path string
 }
@@ -395,8 +395,8 @@ func parseQueryParam(method *protogen.Method) []*queryParam {
 				continue
 			}
 			queryParams = append(queryParams, &queryParam{
-				Method: method,
-				Path:   fmt.Sprintf("%s%s", parent, field.GoName),
+				Field: field,
+				Path:  fmt.Sprintf("%s%s", parent, field.GoName),
 			})
 		}
 	}
