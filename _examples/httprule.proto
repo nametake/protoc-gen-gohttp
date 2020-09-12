@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package main;
 
-option go_package = "github.com/nametake/protoc-gen-gohttp/examples;main";
+option go_package = ".;main";
 
 import "google/api/annotations.proto";
 

@@ -4,22 +4,21 @@
 package main
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"mime"
-	"net/http"
-	"reflect"
-	"strings"
-
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	bytes "bytes"
+	context "context"
+	json "encoding/json"
+	fmt "fmt"
+	jsonpb "github.com/golang/protobuf/jsonpb"
+	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	io "io"
+	ioutil "io/ioutil"
+	mime "mime"
+	http "net/http"
+	reflect "reflect"
+	strings "strings"
 )
 
 // MessagingHTTPService is the server API for Messaging service.
@@ -180,6 +179,7 @@ func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context,
 	return "Messaging", "GetMessage", h.GetMessage(cb, interceptors...)
 }
 
+// GetMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's GetMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -442,6 +442,7 @@ func (h *MessagingHTTPConverter) UpdateMessageWithName(cb func(ctx context.Conte
 	return "Messaging", "UpdateMessage", h.UpdateMessage(cb, interceptors...)
 }
 
+// UpdateMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's UpdateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -719,6 +720,7 @@ func (h *MessagingHTTPConverter) CreateMessageWithName(cb func(ctx context.Conte
 	return "Messaging", "CreateMessage", h.CreateMessage(cb, interceptors...)
 }
 
+// CreateMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's CreateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) CreateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
