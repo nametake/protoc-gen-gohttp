@@ -320,7 +320,13 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 	if _, ok := httpRule.GetPattern().(*annotations.HttpRule_Get); ok {
 		g.P("if r.Method == http.MethodGet {")
 		for _, p := range queryParams {
+			for _, pattern := range targetPatterns {
+				if p.GoName == pattern.GetPath() {
+					goto Pass
+				}
+			}
 			genQueryString(g, p)
+		Pass:
 		}
 		g.P("}")
 	} else {
