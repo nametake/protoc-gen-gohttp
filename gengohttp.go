@@ -20,6 +20,7 @@ var (
 	httpPackage    = protogen.GoImportPath("net/http")
 	strconvPackage = protogen.GoImportPath("strconv")
 	stringsPackage = protogen.GoImportPath("strings")
+	reflectPackage = protogen.GoImportPath("reflect")
 )
 
 var (
@@ -110,10 +111,6 @@ func genDefaultCallback(g *protogen.GeneratedFile) {
 	g.P("		}")
 	g.P("	}")
 	g.P("}")
-}
-
-func genQueryParam(g *protogen.GeneratedFile, method *protogen.Method) {
-
 }
 
 func genServiceInterface(g *protogen.GeneratedFile, srv *protogen.Service) {
@@ -373,7 +370,7 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 
 	for _, t := range targetPatterns {
 		for _, p := range t.GetPaths() {
-			g.P("reflect.ValueOf(&arg.", p, ").Elem().Set(reflect.ValueOf(reflect.New(reflect.TypeOf(arg.", p, ").Elem()).Interface()))")
+			g.P(reflectPackage.Ident("ValueOf"), "(&arg.", p, ").Elem().Set(", reflectPackage.Ident("ValueOf"), "(", reflectPackage.Ident("New"), "(", reflectPackage.Ident("TypeOf"), "(arg.", p, ").Elem()).Interface()))")
 		}
 
 		g.P("arg.", t.GetPath(), " = p[", t.Index, "]")
