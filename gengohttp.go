@@ -32,6 +32,20 @@ var (
 )
 
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) (*protogen.GeneratedFile, error) {
+	isGenerated := false
+	for _, srv := range file.Services {
+		for _, method := range srv.Methods {
+			if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
+				continue
+			}
+			isGenerated = true
+		}
+	}
+
+	if !isGenerated {
+		return nil, nil
+	}
+
 	filename := file.GeneratedFilenamePrefix + ".http.go"
 	g := gen.NewGeneratedFile(filename, file.GoImportPath)
 
