@@ -8,16 +8,19 @@ import (
 	context "context"
 	json "encoding/json"
 	fmt "fmt"
+	io "io"
+	ioutil "io/ioutil"
+	mime "mime"
+	http "net/http"
+	reflect "reflect"
+	"strconv"
+	strings "strings"
+
 	jsonpb "github.com/golang/protobuf/jsonpb"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	io "io"
-	ioutil "io/ioutil"
-	mime "mime"
-	http "net/http"
-	strings "strings"
 )
 
 // MessagingHTTPService is the server API for Messaging service.
@@ -209,12 +212,12 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("revision"); v != "" {
-				i64, err := strconv.ParseInt(v, 10, 64)
+				c, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Revision = i64
+				arg.Revision = c
 			}
 			if v := r.URL.Query().Get("sub.subfield"); v != "" {
 				arg.Sub.Subfield = v
