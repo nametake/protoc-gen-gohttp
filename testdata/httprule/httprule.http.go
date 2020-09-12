@@ -181,6 +181,7 @@ func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context,
 	return "Messaging", "GetMessage", h.GetMessage(cb, interceptors...)
 }
 
+// GetMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's GetMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -444,6 +445,7 @@ func (h *MessagingHTTPConverter) UpdateMessageWithName(cb func(ctx context.Conte
 	return "Messaging", "UpdateMessage", h.UpdateMessage(cb, interceptors...)
 }
 
+// UpdateMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's UpdateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -719,6 +721,7 @@ func (h *MessagingHTTPConverter) SubFieldMessageWithName(cb func(ctx context.Con
 	return "Messaging", "SubFieldMessage", h.SubFieldMessage(cb, interceptors...)
 }
 
+// SubFieldMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's SubFieldMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {

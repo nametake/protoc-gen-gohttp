@@ -179,6 +179,7 @@ func (h *AllPatternHTTPConverter) AllPatternWithName(cb func(ctx context.Context
 	return "AllPattern", "AllPattern", h.AllPattern(cb, interceptors...)
 }
 
+// AllPatternHTTPRule returns HTTP method, path and AllPatternHTTPService interface's AllPattern converted to http.HandlerFunc.
 func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {

@@ -60,7 +60,6 @@ func genService(g *protogen.GeneratedFile, srv *protogen.Service) error {
 
 		genMethod(g, method)
 		genMethodWithName(g, method)
-		g.P("")
 		if err := genMethodHTTPRule(g, method); err != nil {
 			return err
 		}
@@ -125,7 +124,7 @@ func genServiceInterface(g *protogen.GeneratedFile, srv *protogen.Service) {
 		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
 			continue
 		}
-		g.P(method.GoName, "(", contextPackage.Ident("Context"), ", *", method.Input.GoIdent.GoName, ") (*", method.Output.GoIdent.GoName, ", error)")
+		g.P(method.Comments.Leading, method.GoName, "(", contextPackage.Ident("Context"), ", *", method.Input.GoIdent.GoName, ") (*", method.Output.GoIdent.GoName, ", error)")
 	}
 	g.P("}")
 }
@@ -148,7 +147,10 @@ func genConstructor(g *protogen.GeneratedFile, srv *protogen.Service) {
 
 func genMethod(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("// ", method.GoName, " returns ", method.Parent.GoName, "HTTPService interface's ", method.GoName, " converted to http.HandlerFunc.")
-	g.P(methodSignature(g, method, ""), httpPackage.Ident("HandlerFunc"), " {")
+	if method.Comments.Leading.String() != "" {
+		g.P("//")
+	}
+	g.P(method.Comments.Leading, methodSignature(g, method, ""), httpPackage.Ident("HandlerFunc"), " {")
 	genDefaultCallback(g)
 	g.P("	return ", httpPackage.Ident("HandlerFunc"), "(func(w ", httpPackage.Ident("ResponseWriter"), ", r *", httpPackage.Ident("Request"), ") {")
 	g.P("		ctx := r.Context()")
@@ -262,7 +264,10 @@ func genMethod(g *protogen.GeneratedFile, method *protogen.Method) {
 
 func genMethodWithName(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("// ", method.GoName, "WithName returns Service name, Method name and ", method.Parent.GoName, "HTTPService interface's ", method.GoName, " converted to http.HandlerFunc.")
-	g.P(methodSignature(g, method, "WithName"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
+	if method.Comments.Leading.String() != "" {
+		g.P("//")
+	}
+	g.P(method.Comments.Leading, methodSignature(g, method, "WithName"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
 	g.P("	return \"", method.Parent.GoName, "\", \"", method.GoName, "\", h.", method.GoName, "(cb, interceptors...)")
 	g.P("}")
 }
@@ -310,7 +315,11 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 
 	queryParams := parseQueryParam(method)
 
-	g.P(methodSignature(g, method, "HTTPRule"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
+	g.P("// ", method.GoName, "HTTPRule returns HTTP method, path and ", method.Parent.GoName, "HTTPService interface's ", method.GoName, " converted to http.HandlerFunc.")
+	if method.Comments.Leading.String() != "" {
+		g.P("//")
+	}
+	g.P(method.Comments.Leading, methodSignature(g, method, "HTTPRule"), " (string, string, ", httpPackage.Ident("HandlerFunc"), ") {")
 	genDefaultCallback(g)
 	g.P("	return ", httpMethod, ", \"", pattern, "\", ", httpPackage.Ident("HandlerFunc"), "(func(w ", httpPackage.Ident("ResponseWriter"), ", r *", httpPackage.Ident("Request"), ") {")
 	g.P("		ctx := r.Context()")
