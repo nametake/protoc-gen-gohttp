@@ -380,28 +380,35 @@ func parseHTTPRule(md *protokit.MethodDescriptor) (*targetHTTPRule, error) {
 type queryParam struct {
 	*protogen.Field
 
-	Path string
+	GoName string
+	Name   string
 }
 
 func parseQueryParam(method *protogen.Method) []*queryParam {
 	queryParams := make([]*queryParam, 0)
 
-	var f func(parent string, fields []*protogen.Field)
+	var f func(parent *queryParam, fields []*protogen.Field)
 
-	f = func(parent string, fields []*protogen.Field) {
+	f = func(parent *queryParam, fields []*protogen.Field) {
 		for _, field := range fields {
 			if field.Desc.Kind() == protoreflect.MessageKind {
-				f(fmt.Sprintf("%s.", field.GoName), field.Message.Fields)
+				q := &queryParam{
+					Field:  field,
+					GoName: fmt.Sprintf("%s.", field.GoName),
+					Name:   fmt.Sprintf("%s.", field.Desc.Name()),
+				}
+				f(q, field.Message.Fields)
 				continue
 			}
 			queryParams = append(queryParams, &queryParam{
-				Field: field,
-				Path:  fmt.Sprintf("%s%s", parent, field.GoName),
+				Field:  field,
+				GoName: fmt.Sprintf("%s%s", parent.GoName, field.GoName),
+				Name:   fmt.Sprintf("%s%s", parent.Name, field.Desc.Name()),
 			})
 		}
 	}
 
-	f("", method.Input.Fields)
+	f(&queryParam{GoName: "", Name: ""}, method.Input.Fields)
 
 	return queryParams
 }

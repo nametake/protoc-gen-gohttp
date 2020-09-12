@@ -255,7 +255,7 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Uint64 = uint64(c)
+				arg.Uint64 = c
 			}
 			if v := r.URL.Query().Get("fixed32"); v != "" {
 				c, err := strconv.ParseUint(v, 10, 32)
@@ -271,7 +271,7 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Fixed64 = uint64(c)
+				arg.Fixed64 = c
 			}
 			if v := r.URL.Query().Get("sfixed32"); v != "" {
 				c, err := strconv.ParseInt(v, 10, 32)
@@ -287,7 +287,7 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Sfixed64 = int64(c)
+				arg.Sfixed64 = c
 			}
 			if v := r.URL.Query().Get("bool"); v != "" {
 				c, err := strconv.ParseBool(v)
@@ -335,7 +335,7 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			if repeated := r.URL.Query()["repeated_int32"]; len(repeated) != 0 {
 				arr := make([]int32, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseInt(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
@@ -347,19 +347,19 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			if repeated := r.URL.Query()["repeated_int64"]; len(repeated) != 0 {
 				arr := make([]int64, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseInt(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, int64(c))
+					arr = append(arr, c)
 				}
 				arg.RepeatedInt64 = arr
 			}
 			if repeated := r.URL.Query()["repeated_uint32"]; len(repeated) != 0 {
 				arr := make([]uint32, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseUint(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
@@ -371,19 +371,19 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			if repeated := r.URL.Query()["repeated_uint64"]; len(repeated) != 0 {
 				arr := make([]uint64, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseUint(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, uint64(c))
+					arr = append(arr, c)
 				}
 				arg.RepeatedUint64 = arr
 			}
 			if repeated := r.URL.Query()["repeated_fixed32"]; len(repeated) != 0 {
 				arr := make([]uint32, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseUint(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
@@ -395,19 +395,19 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			if repeated := r.URL.Query()["repeated_fixed64"]; len(repeated) != 0 {
 				arr := make([]uint64, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseUint(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, uint64(c))
+					arr = append(arr, c)
 				}
 				arg.RepeatedFixed64 = arr
 			}
 			if repeated := r.URL.Query()["repeated_sfixed32"]; len(repeated) != 0 {
 				arr := make([]int32, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseInt(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
@@ -419,12 +419,12 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			if repeated := r.URL.Query()["repeated_sfixed64"]; len(repeated) != 0 {
 				arr := make([]int64, 0, len(repeated))
 				for _, v := range repeated {
-					c, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseInt(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, int64(c))
+					arr = append(arr, c)
 				}
 				arg.RepeatedSfixed64 = arr
 			}

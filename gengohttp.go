@@ -448,7 +448,7 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 	switch queryParam.Desc.Kind() {
 	case protoreflect.BoolKind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]bool, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", strconvPackage.Ident("ParseBool"), "(v)")
@@ -458,21 +458,21 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("		}")
 			g.P("		arr = append(arr, c)")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", strconvPackage.Ident("ParseBool"), "(v)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = c")
+			g.P("	arg.", queryParam.GoName, " = c")
 			g.P("}")
 		}
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]int32, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", strconvPackage.Ident("ParseInt"), "(v, 10, 32)")
@@ -482,21 +482,21 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("		}")
 			g.P("		arr = append(arr, int32(c))")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", strconvPackage.Ident("ParseInt"), "(v, 10, 32)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = int32(c)")
+			g.P("	arg.", queryParam.GoName, " = int32(c)")
 			g.P("}")
 		}
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]uint32, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", strconvPackage.Ident("ParseUint"), "(v, 10, 32)")
@@ -506,21 +506,21 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("		}")
 			g.P("		arr = append(arr, uint32(c))")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", strconvPackage.Ident("ParseUint"), "(v, 10, 32)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = uint32(c)")
+			g.P("	arg.", queryParam.GoName, " = uint32(c)")
 			g.P("}")
 		}
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]int64, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", strconvPackage.Ident("ParseInt"), "(v, 10, 64)")
@@ -528,23 +528,23 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("			cb(ctx, w, r, nil, nil, err)")
 			g.P("			return")
 			g.P("		}")
-			g.P("		arr = append(arr, int64(c))")
+			g.P("		arr = append(arr, c)")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", strconvPackage.Ident("ParseInt"), "(v, 10, 64)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = int64(c)")
+			g.P("	arg.", queryParam.GoName, " = c")
 			g.P("}")
 		}
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]uint64, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", strconvPackage.Ident("ParseUint"), "(v, 10, 64)")
@@ -552,23 +552,23 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("			cb(ctx, w, r, nil, nil, err)")
 			g.P("			return")
 			g.P("		}")
-			g.P("		arr = append(arr, uint64(c))")
+			g.P("		arr = append(arr, c)")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", strconvPackage.Ident("ParseUint"), "(v, 10, 64)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = uint64(c)")
+			g.P("	arg.", queryParam.GoName, " = c")
 			g.P("}")
 		}
 	case protoreflect.FloatKind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]float32, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", strconvPackage.Ident("ParseFloat"), "(v, 32)")
@@ -578,21 +578,21 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("		}")
 			g.P("		arr = append(arr, float32(c))")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", strconvPackage.Ident("ParseFloat"), "(v, 32)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = float32(c)")
+			g.P("	arg.", queryParam.GoName, " = float32(c)")
 			g.P("}")
 		}
 	case protoreflect.DoubleKind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]float64, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", strconvPackage.Ident("ParseFloat"), "(v, 64)")
@@ -602,35 +602,35 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("		}")
 			g.P("		arr = append(arr, c)")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", strconvPackage.Ident("ParseFloat"), "(v, 64)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = c")
+			g.P("	arg.", queryParam.GoName, " = c")
 			g.P("}")
 		}
 	case protoreflect.StringKind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([]string, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		arr = append(arr, v)")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
-			g.P("	arg.", queryParam.Path, " = v")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
+			g.P("	arg.", queryParam.GoName, " = v")
 			g.P("}")
 		}
 	case protoreflect.BytesKind:
 		if queryParam.Desc.IsList() {
-			g.P("if repeated := r.URL.Query()[\"", queryParam.Path, "\"]; len(repeated) != 0 {")
+			g.P("if repeated := r.URL.Query()[\"", queryParam.Name, "\"]; len(repeated) != 0 {")
 			g.P("	arr := make([][]byte, 0, len(repeated))")
 			g.P("	for _, v := range repeated {")
 			g.P("		c, err := ", base64Package.Ident("StdEncoding.DecodeString"), "(v)")
@@ -640,16 +640,16 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("		}")
 			g.P("		arr = append(arr, c)")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = arr")
+			g.P("	arg.", queryParam.GoName, " = arr")
 			g.P("}")
 		} else {
-			g.P("if v := r.URL.Query().Get(\"", queryParam.Path, "\"); v != \"\" {")
+			g.P("if v := r.URL.Query().Get(\"", queryParam.Name, "\"); v != \"\" {")
 			g.P("	c, err := ", base64Package.Ident("StdEncoding.DecodeString"), "(v)")
 			g.P("	if err != nil {")
 			g.P("		cb(ctx, w, r, nil, nil, err)")
 			g.P("		return")
 			g.P("	}")
-			g.P("	arg.", queryParam.Path, " = c")
+			g.P("	arg.", queryParam.GoName, " = c")
 			g.P("}")
 		}
 	}
