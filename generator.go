@@ -3,31 +3,72 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type targetVariable struct {
-	Index int
-	Path  string
+var toCamelCaseRe = regexp.MustCompile(`(^[A-Za-z])|(_|\.)([A-Za-z])`)
+
+func toCamelCase(str string) string {
+	return toCamelCaseRe.ReplaceAllStringFunc(str, func(s string) string {
+		return strings.ToUpper(strings.Replace(s, "_", "", -1))
+	})
 }
 
-func (t *targetVariable) GetPath() string {
-	return toCamelCase(t.Path)
+type pathParam struct {
+	Index  int
+	Name   string
+	GoName string
 }
 
-func (t *targetVariable) GetPaths() []string {
-	paths := make([]string, 0)
-	ps := strings.Split(t.Path, ".")
+func (t *pathParam) GetSplitedGoNames() []string {
+	names := make([]string, 0)
+	ps := strings.Split(t.GoName, ".")
 	for i := range ps {
 		if i == 0 {
 			continue
 		}
-		paths = append(paths, toCamelCase(strings.Join(ps[0:i], ".")))
+		names = append(names, strings.Join(ps[0:i], "."))
 	}
-	return paths
+	return names
+}
+
+func parsePathParam(pattern string) ([]*pathParam, error) {
+	if !strings.HasPrefix(pattern, "/") {
+		return nil, fmt.Errorf("no leading /")
+	}
+	tokens, _ := tokenize(pattern[1:])
+
+	p := parser{tokens: tokens}
+	segs, err := p.topLevelSegments()
+	if err != nil {
+		return nil, err
+	}
+
+	params := make([]*pathParam, 0)
+	for i, seg := range segs {
+		if v, ok := seg.(variable); ok {
+			params = append(params, &pathParam{
+				Index:  i + 1,
+				Name:   v.path,
+				GoName: toCamelCase(v.path),
+			})
+		}
+	}
+
+	sort.Slice(params, func(i, j int) bool {
+		a := params[i]
+		b := params[j]
+		if len(strings.Split(a.Name, ".")) < len(strings.Split(b.Name, ".")) {
+			return true
+		}
+		return params[i].Name < params[j].Name
+	})
+
+	return params, nil
 }
 
 type queryParam struct {
@@ -37,7 +78,7 @@ type queryParam struct {
 	Name   string
 }
 
-func parseQueryParam(method *protogen.Method) []*queryParam {
+func createQueryParams(method *protogen.Method) []*queryParam {
 	queryParams := make([]*queryParam, 0)
 
 	var f func(parent *queryParam, fields []*protogen.Field)
@@ -64,12 +105,4 @@ func parseQueryParam(method *protogen.Method) []*queryParam {
 	f(&queryParam{GoName: "", Name: ""}, method.Input.Fields)
 
 	return queryParams
-}
-
-var toCamelCaseRe = regexp.MustCompile(`(^[A-Za-z])|(_|\.)([A-Za-z])`)
-
-func toCamelCase(str string) string {
-	return toCamelCaseRe.ReplaceAllStringFunc(str, func(s string) string {
-		return strings.ToUpper(strings.Replace(s, "_", "", -1))
-	})
 }

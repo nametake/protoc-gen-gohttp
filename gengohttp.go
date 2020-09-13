@@ -319,12 +319,12 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 		return nil
 	}
 
-	targetPatterns, err := parsePattern(pattern)
+	pathParams, err := parsePathParam(pattern)
 	if err != nil {
 		return err
 	}
 
-	queryParams := parseQueryParam(method)
+	queryParams := createQueryParams(method)
 
 	g.P("// ", method.GoName, "HTTPRule returns HTTP method, path and ", method.Parent.GoName, "HTTPService interface's ", method.GoName, " converted to http.HandlerFunc.")
 	if method.Comments.Leading.String() != "" {
@@ -340,8 +340,8 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 	if _, ok := httpRule.GetPattern().(*annotations.HttpRule_Get); ok {
 		g.P("if r.Method == http.MethodGet {")
 		for _, p := range queryParams {
-			for _, pattern := range targetPatterns {
-				if p.GoName == pattern.GetPath() {
+			for _, pattern := range pathParams {
+				if p.GoName == pattern.GoName {
 					goto Pass
 				}
 			}
@@ -378,16 +378,16 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 	}
 	g.P("")
 
-	if len(targetPatterns) != 0 {
+	if len(pathParams) != 0 {
 		g.P("p := strings.Split(r.URL.Path, \"/\")")
 	}
 
-	for _, t := range targetPatterns {
-		for _, p := range t.GetPaths() {
+	for _, t := range pathParams {
+		for _, p := range t.GetSplitedGoNames() {
 			g.P(reflectPackage.Ident("ValueOf"), "(&arg.", p, ").Elem().Set(", reflectPackage.Ident("ValueOf"), "(", reflectPackage.Ident("New"), "(", reflectPackage.Ident("TypeOf"), "(arg.", p, ").Elem()).Interface()))")
 		}
 
-		g.P("arg.", t.GetPath(), " = p[", t.Index, "]")
+		g.P("arg.", t.GoName, " = p[", t.Index, "]")
 	}
 
 	g.P("")
