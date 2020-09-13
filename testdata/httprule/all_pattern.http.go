@@ -7,7 +7,6 @@ import (
 	bytes "bytes"
 	context "context"
 	base64 "encoding/base64"
-	json "encoding/json"
 	fmt "fmt"
 	jsonpb "github.com/golang/protobuf/jsonpb"
 	proto "github.com/golang/protobuf/proto"
@@ -56,7 +55,11 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -195,7 +198,11 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:

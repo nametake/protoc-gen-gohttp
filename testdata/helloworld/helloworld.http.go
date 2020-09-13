@@ -6,7 +6,6 @@ package helloworldpb
 import (
 	bytes "bytes"
 	context "context"
-	json "encoding/json"
 	fmt "fmt"
 	jsonpb "github.com/golang/protobuf/jsonpb"
 	proto "github.com/golang/protobuf/proto"
@@ -57,7 +56,11 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:

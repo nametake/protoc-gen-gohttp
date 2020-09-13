@@ -6,7 +6,6 @@ package httprulepb
 import (
 	bytes "bytes"
 	context "context"
-	json "encoding/json"
 	fmt "fmt"
 	jsonpb "github.com/golang/protobuf/jsonpb"
 	proto "github.com/golang/protobuf/proto"
@@ -58,7 +57,11 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -197,7 +200,11 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -322,7 +329,11 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -461,7 +472,11 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -598,7 +613,11 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -737,7 +756,11 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
