@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "routeguidepb";
+option go_package = "routeguide;routeguidepb";
 
 package routeguide;
 
