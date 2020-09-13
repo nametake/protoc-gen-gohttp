@@ -4,23 +4,22 @@
 package httprulepb
 
 import (
-	"bytes"
-	"context"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"mime"
-	"net/http"
-	"strconv"
-	"strings"
-
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	bytes "bytes"
+	context "context"
+	base64 "encoding/base64"
+	json "encoding/json"
+	fmt "fmt"
+	jsonpb "github.com/golang/protobuf/jsonpb"
+	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	io "io"
+	ioutil "io/ioutil"
+	mime "mime"
+	http "net/http"
+	strconv "strconv"
+	strings "strings"
 )
 
 // AllPatternHTTPService is the server API for AllPattern service.
@@ -179,6 +178,7 @@ func (h *AllPatternHTTPConverter) AllPatternWithName(cb func(ctx context.Context
 	return "AllPattern", "AllPattern", h.AllPattern(cb, interceptors...)
 }
 
+// AllPatternHTTPRule returns HTTP method, path and AllPatternHTTPService interface's AllPattern converted to http.HandlerFunc.
 func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -210,233 +210,233 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("double"); v != "" {
-				d, err := strconv.ParseFloat(v, 64)
+				c, err := strconv.ParseFloat(v, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Double = d
+				arg.Double = c
 			}
 			if v := r.URL.Query().Get("float"); v != "" {
-				f, err := strconv.ParseFloat(v, 32)
+				c, err := strconv.ParseFloat(v, 32)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Float = float32(f)
+				arg.Float = float32(c)
 			}
 			if v := r.URL.Query().Get("int32"); v != "" {
-				i32, err := strconv.ParseInt(v, 10, 32)
+				c, err := strconv.ParseInt(v, 10, 32)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Int32 = int32(i32)
+				arg.Int32 = int32(c)
 			}
 			if v := r.URL.Query().Get("int64"); v != "" {
-				i64, err := strconv.ParseInt(v, 10, 64)
+				c, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Int64 = i64
+				arg.Int64 = c
 			}
 			if v := r.URL.Query().Get("uint32"); v != "" {
-				ui32, err := strconv.ParseUint(v, 10, 32)
+				c, err := strconv.ParseUint(v, 10, 32)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Uint32 = uint32(ui32)
+				arg.Uint32 = uint32(c)
 			}
 			if v := r.URL.Query().Get("uint64"); v != "" {
-				ui64, err := strconv.ParseUint(v, 10, 64)
+				c, err := strconv.ParseUint(v, 10, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Uint64 = uint64(ui64)
+				arg.Uint64 = c
 			}
 			if v := r.URL.Query().Get("fixed32"); v != "" {
-				f32, err := strconv.ParseUint(v, 10, 32)
+				c, err := strconv.ParseUint(v, 10, 32)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Fixed32 = uint32(f32)
+				arg.Fixed32 = uint32(c)
 			}
 			if v := r.URL.Query().Get("fixed64"); v != "" {
-				f64, err := strconv.ParseUint(v, 10, 64)
+				c, err := strconv.ParseUint(v, 10, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Fixed64 = uint64(f64)
+				arg.Fixed64 = c
 			}
 			if v := r.URL.Query().Get("sfixed32"); v != "" {
-				sf32, err := strconv.ParseInt(v, 10, 32)
+				c, err := strconv.ParseInt(v, 10, 32)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Sfixed32 = int32(sf32)
+				arg.Sfixed32 = int32(c)
 			}
 			if v := r.URL.Query().Get("sfixed64"); v != "" {
-				sf64, err := strconv.ParseInt(v, 10, 64)
+				c, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Sfixed64 = int64(sf64)
+				arg.Sfixed64 = c
 			}
 			if v := r.URL.Query().Get("bool"); v != "" {
-				b, err := strconv.ParseBool(v)
+				c, err := strconv.ParseBool(v)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Bool = b
+				arg.Bool = c
 			}
 			if v := r.URL.Query().Get("string"); v != "" {
 				arg.String_ = v
 			}
 			if v := r.URL.Query().Get("bytes"); v != "" {
-				b, err := base64.StdEncoding.DecodeString(v)
+				c, err := base64.StdEncoding.DecodeString(v)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Bytes = b
+				arg.Bytes = c
 			}
 			if repeated := r.URL.Query()["repeated_double"]; len(repeated) != 0 {
 				arr := make([]float64, 0, len(repeated))
 				for _, v := range repeated {
-					d, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseFloat(v, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, d)
+					arr = append(arr, c)
 				}
 				arg.RepeatedDouble = arr
 			}
 			if repeated := r.URL.Query()["repeated_float"]; len(repeated) != 0 {
 				arr := make([]float32, 0, len(repeated))
 				for _, v := range repeated {
-					f, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseFloat(v, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, float32(f))
+					arr = append(arr, float32(c))
 				}
 				arg.RepeatedFloat = arr
 			}
 			if repeated := r.URL.Query()["repeated_int32"]; len(repeated) != 0 {
 				arr := make([]int32, 0, len(repeated))
 				for _, v := range repeated {
-					i32, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseInt(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, int32(i32))
+					arr = append(arr, int32(c))
 				}
 				arg.RepeatedInt32 = arr
 			}
 			if repeated := r.URL.Query()["repeated_int64"]; len(repeated) != 0 {
 				arr := make([]int64, 0, len(repeated))
 				for _, v := range repeated {
-					i64, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseInt(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, int64(i64))
+					arr = append(arr, c)
 				}
 				arg.RepeatedInt64 = arr
 			}
 			if repeated := r.URL.Query()["repeated_uint32"]; len(repeated) != 0 {
 				arr := make([]uint32, 0, len(repeated))
 				for _, v := range repeated {
-					ui32, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseUint(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, uint32(ui32))
+					arr = append(arr, uint32(c))
 				}
 				arg.RepeatedUint32 = arr
 			}
 			if repeated := r.URL.Query()["repeated_uint64"]; len(repeated) != 0 {
 				arr := make([]uint64, 0, len(repeated))
 				for _, v := range repeated {
-					ui64, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseUint(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, uint64(ui64))
+					arr = append(arr, c)
 				}
 				arg.RepeatedUint64 = arr
 			}
 			if repeated := r.URL.Query()["repeated_fixed32"]; len(repeated) != 0 {
 				arr := make([]uint32, 0, len(repeated))
 				for _, v := range repeated {
-					f32, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseUint(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, uint32(f32))
+					arr = append(arr, uint32(c))
 				}
 				arg.RepeatedFixed32 = arr
 			}
 			if repeated := r.URL.Query()["repeated_fixed64"]; len(repeated) != 0 {
 				arr := make([]uint64, 0, len(repeated))
 				for _, v := range repeated {
-					f64, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseUint(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, uint64(f64))
+					arr = append(arr, c)
 				}
 				arg.RepeatedFixed64 = arr
 			}
 			if repeated := r.URL.Query()["repeated_sfixed32"]; len(repeated) != 0 {
 				arr := make([]int32, 0, len(repeated))
 				for _, v := range repeated {
-					sf32, err := strconv.ParseFloat(v, 32)
+					c, err := strconv.ParseInt(v, 10, 32)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, int32(sf32))
+					arr = append(arr, int32(c))
 				}
 				arg.RepeatedSfixed32 = arr
 			}
 			if repeated := r.URL.Query()["repeated_sfixed64"]; len(repeated) != 0 {
 				arr := make([]int64, 0, len(repeated))
 				for _, v := range repeated {
-					sf64, err := strconv.ParseFloat(v, 64)
+					c, err := strconv.ParseInt(v, 10, 64)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, int64(sf64))
+					arr = append(arr, c)
 				}
 				arg.RepeatedSfixed64 = arr
 			}
 			if repeated := r.URL.Query()["repeated_bool"]; len(repeated) != 0 {
 				arr := make([]bool, 0, len(repeated))
 				for _, v := range repeated {
-					b, err := strconv.ParseBool(v)
+					c, err := strconv.ParseBool(v)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, b)
+					arr = append(arr, c)
 				}
 				arg.RepeatedBool = arr
 			}
@@ -450,12 +450,12 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			if repeated := r.URL.Query()["repeated_bytes"]; len(repeated) != 0 {
 				arr := make([][]byte, 0, len(repeated))
 				for _, v := range repeated {
-					b, err := base64.StdEncoding.DecodeString(v)
+					c, err := base64.StdEncoding.DecodeString(v)
 					if err != nil {
 						cb(ctx, w, r, nil, nil, err)
 						return
 					}
-					arr = append(arr, b)
+					arr = append(arr, c)
 				}
 				arg.RepeatedBytes = arr
 			}

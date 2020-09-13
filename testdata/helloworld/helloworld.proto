@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package helloworld;
 
-option go_package = "helloworldpb";
+option go_package = "helloworld;helloworldpb";
 
 service Greeter {
   // SayHello says hello.

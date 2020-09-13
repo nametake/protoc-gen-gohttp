@@ -4,23 +4,22 @@
 package httprulepb
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"mime"
-	"net/http"
-	"reflect"
-	"strconv"
-	"strings"
-
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	bytes "bytes"
+	context "context"
+	json "encoding/json"
+	fmt "fmt"
+	jsonpb "github.com/golang/protobuf/jsonpb"
+	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	io "io"
+	ioutil "io/ioutil"
+	mime "mime"
+	http "net/http"
+	reflect "reflect"
+	strconv "strconv"
+	strings "strings"
 )
 
 // MessagingHTTPService is the server API for Messaging service.
@@ -181,6 +180,7 @@ func (h *MessagingHTTPConverter) GetMessageWithName(cb func(ctx context.Context,
 	return "Messaging", "GetMessage", h.GetMessage(cb, interceptors...)
 }
 
+// GetMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's GetMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -212,12 +212,12 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("revision"); v != "" {
-				i64, err := strconv.ParseInt(v, 10, 64)
+				c, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
-				arg.Revision = i64
+				arg.Revision = c
 			}
 			if v := r.URL.Query().Get("sub.subfield"); v != "" {
 				arg.Sub.Subfield = v
@@ -444,6 +444,7 @@ func (h *MessagingHTTPConverter) UpdateMessageWithName(cb func(ctx context.Conte
 	return "Messaging", "UpdateMessage", h.UpdateMessage(cb, interceptors...)
 }
 
+// UpdateMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's UpdateMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
@@ -719,6 +720,7 @@ func (h *MessagingHTTPConverter) SubFieldMessageWithName(cb func(ctx context.Con
 	return "Messaging", "SubFieldMessage", h.SubFieldMessage(cb, interceptors...)
 }
 
+// SubFieldMessageHTTPRule returns HTTP method, path and MessagingHTTPService interface's SubFieldMessage converted to http.HandlerFunc.
 func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error), interceptors ...grpc.UnaryServerInterceptor) (string, string, http.HandlerFunc) {
 	if cb == nil {
 		cb = func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
