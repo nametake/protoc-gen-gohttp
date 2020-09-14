@@ -6,7 +6,6 @@ package helloworldpb
 import (
 	bytes "bytes"
 	context "context"
-	json "encoding/json"
 	fmt "fmt"
 	jsonpb "github.com/golang/protobuf/jsonpb"
 	proto "github.com/golang/protobuf/proto"
@@ -57,7 +56,11 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -68,8 +71,21 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &HelloRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &HelloRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -131,18 +147,6 @@ func (h *GreeterHTTPConverter) SayHello(cb func(ctx context.Context, w http.Resp
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/helloworld.Greeter/SayHello: interceptors have not return HelloReply"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":

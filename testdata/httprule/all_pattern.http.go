@@ -7,7 +7,6 @@ import (
 	bytes "bytes"
 	context "context"
 	base64 "encoding/base64"
-	json "encoding/json"
 	fmt "fmt"
 	jsonpb "github.com/golang/protobuf/jsonpb"
 	proto "github.com/golang/protobuf/proto"
@@ -56,7 +55,11 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -67,8 +70,21 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &AllPatternRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &AllPatternRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -131,18 +147,6 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 			return
 		}
 
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
-
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
@@ -195,7 +199,11 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 						return
 					}
 				case "application/json":
-					if err := json.NewEncoder(w).Encode(p); err != nil {
+					m := jsonpb.Marshaler{
+						EnumsAsInts:  true,
+						EmitDefaults: true,
+					}
+					if err := m.Marshal(w, p); err != nil {
 						return
 					}
 				default:
@@ -206,8 +214,21 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 	return http.MethodGet, "/all/pattern", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &AllPatternRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &AllPatternRequest{}
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("double"); v != "" {
 				c, err := strconv.ParseFloat(v, 64)
@@ -496,18 +517,6 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.AllPattern/AllPattern: interceptors have not return AllPatternResponse"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
