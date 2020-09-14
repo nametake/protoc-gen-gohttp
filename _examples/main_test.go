@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -12,18 +13,28 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+type ErrorService struct{}
+
+func (s *ErrorService) SayHello(ctx context.Context, req *HelloRequest) (*HelloReply, error) {
+	return nil, errors.New("ERROR")
+}
 
 func TestEchoGreeterServer_SayHello(t *testing.T) {
 	type want struct {
 		StatusCode  int
 		ContentType string
-		Resp        *HelloReply
+		Resp        proto.Message
 	}
 	var tests = []struct {
 		name         string
 		reqFunc      func() (*http.Request, error)
+		service      GreeterHTTPService
 		cb           func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error)
 		interceptors []grpc.UnaryServerInterceptor
 		wantErr      bool
@@ -46,6 +57,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
+			service: &EchoGreeterServer{},
 			cb:      nil,
 			wantErr: false,
 			want: &want{
@@ -74,6 +86,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
+			service: &EchoGreeterServer{},
 			cb:      nil,
 			wantErr: false,
 			want: &want{
@@ -92,6 +105,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
+			service: &EchoGreeterServer{},
 			cb: func(ctx context.Context, w http.ResponseWriter, r *http.Request, arg, ret proto.Message, err error) {
 				if arg != nil {
 					t.Errorf("arg is not nil: %#v", arg)
@@ -128,6 +142,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "")
 				return req, nil
 			},
+			service: &EchoGreeterServer{},
 			cb:      nil,
 			wantErr: false,
 			want: &want{
@@ -155,6 +170,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "application/protobuf")
 				return req, nil
 			},
+			service: &EchoGreeterServer{},
 			cb:      nil,
 			wantErr: false,
 			want: &want{
@@ -182,7 +198,8 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
-			cb: nil,
+			service: &EchoGreeterServer{},
+			cb:      nil,
 			interceptors: []grpc.UnaryServerInterceptor{
 				grpc.UnaryServerInterceptor(
 					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -234,7 +251,8 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				req.Header.Set("Accept", "*/*")
 				return req, nil
 			},
-			cb: nil,
+			service: &EchoGreeterServer{},
+			cb:      nil,
 			interceptors: []grpc.UnaryServerInterceptor{
 				grpc.UnaryServerInterceptor(
 					func(ctx context.Context, arg interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -257,14 +275,65 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Default callback error at Content-Type JSON",
+			reqFunc: func() (*http.Request, error) {
+				p := &HelloRequest{
+					Name: "John",
+				}
+
+				body := &bytes.Buffer{}
+				if err := json.NewEncoder(body).Encode(p); err != nil {
+					return nil, err
+				}
+
+				req := httptest.NewRequest(http.MethodPost, "/", body)
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Accept", "*/*")
+				return req, nil
+			},
+			service: &ErrorService{},
+			cb:      nil,
+			wantErr: true,
+			want: &want{
+				StatusCode:  500,
+				ContentType: "application/json",
+				Resp:        status.New(codes.Unknown, "ERROR").Proto(),
+			},
+		},
+		{
+			name: "Default callback error at Content-Type Protobuf",
+			reqFunc: func() (*http.Request, error) {
+				p := &HelloRequest{
+					Name: "John",
+				}
+
+				buf, err := proto.Marshal(p)
+				if err != nil {
+					return nil, err
+				}
+
+				body := bytes.NewBuffer(buf)
+				req := httptest.NewRequest(http.MethodPost, "/", body)
+				req.Header.Set("Content-Type", "application/protobuf")
+				req.Header.Set("Accept", "*/*")
+				return req, nil
+			},
+			service: &ErrorService{},
+			cb:      nil,
+			wantErr: true,
+			want: &want{
+				StatusCode:  500,
+				ContentType: "application/protobuf",
+				Resp:        status.New(codes.Unknown, "ERROR").Proto(),
+			},
+		},
 	}
 
 	opts := cmpopts.IgnoreUnexported(
 		HelloRequest{},
 		HelloReply{},
 	)
-
-	handler := NewGreeterHTTPConverter(&EchoGreeterServer{})
 
 	for _, tt := range tests {
 		tt := tt
@@ -275,12 +344,26 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
+			handler := NewGreeterHTTPConverter(tt.service)
 			handler.SayHello(tt.cb, tt.interceptors...).ServeHTTP(rec, req)
 
-			var resp *HelloReply
+			var resp proto.Message
 			var contentType string
 			if !tt.wantErr {
 				resp = &HelloReply{}
+				switch contentType = rec.Header().Get("Content-Type"); contentType {
+				case "application/protobuf":
+					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
+						t.Fatal(err)
+					}
+				case "application/json":
+					if err := json.NewDecoder(rec.Body).Decode(resp); err != nil {
+						t.Fatal(err)
+					}
+				default:
+				}
+			} else {
+				resp := &spb.Status{}
 				switch contentType = rec.Header().Get("Content-Type"); contentType {
 				case "application/protobuf":
 					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
