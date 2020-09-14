@@ -10,13 +10,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type ErrorService struct{}
@@ -298,7 +298,10 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			want: &want{
 				StatusCode:  500,
 				ContentType: "application/json",
-				Resp:        status.New(codes.Unknown, "ERROR").Proto(),
+				Resp: &spb.Status{
+					Code:    int32(codes.Unknown),
+					Message: "ERROR",
+				},
 			},
 		},
 		{
@@ -325,7 +328,10 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 			want: &want{
 				StatusCode:  500,
 				ContentType: "application/protobuf",
-				Resp:        status.New(codes.Unknown, "ERROR").Proto(),
+				Resp: &spb.Status{
+					Code:    int32(codes.Unknown),
+					Message: "ERROR",
+				},
 			},
 		},
 	}
@@ -333,6 +339,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 	opts := cmpopts.IgnoreUnexported(
 		HelloRequest{},
 		HelloReply{},
+		spb.Status{},
 	)
 
 	for _, tt := range tests {
@@ -362,15 +369,17 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 					}
 				default:
 				}
-			} else {
-				resp := &spb.Status{}
+			} else if tt.cb == nil {
+				// for default callback
+				resp = &spb.Status{}
 				switch contentType = rec.Header().Get("Content-Type"); contentType {
 				case "application/protobuf":
 					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
 					}
+					fmt.Println(resp)
 				case "application/json":
-					if err := json.NewDecoder(rec.Body).Decode(resp); err != nil {
+					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
 						t.Fatal(err)
 					}
 				default:

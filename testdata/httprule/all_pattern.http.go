@@ -70,8 +70,21 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &AllPatternRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &AllPatternRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -133,18 +146,6 @@ func (h *AllPatternHTTPConverter) AllPattern(cb func(ctx context.Context, w http
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.AllPattern/AllPattern: interceptors have not return AllPatternResponse"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -213,8 +214,21 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 	return http.MethodGet, "/all/pattern", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &AllPatternRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &AllPatternRequest{}
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("double"); v != "" {
 				c, err := strconv.ParseFloat(v, 64)
@@ -503,18 +517,6 @@ func (h *AllPatternHTTPConverter) AllPatternHTTPRule(cb func(ctx context.Context
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.AllPattern/AllPattern: interceptors have not return AllPatternResponse"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":

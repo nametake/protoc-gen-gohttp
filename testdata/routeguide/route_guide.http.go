@@ -68,8 +68,21 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &Point{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &Point{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -131,18 +144,6 @@ func (h *RouteGuideHTTPConverter) GetFeature(cb func(ctx context.Context, w http
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/routeguide.RouteGuide/GetFeature: interceptors have not return Feature"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":

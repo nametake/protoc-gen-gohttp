@@ -72,8 +72,21 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &GetMessageRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &GetMessageRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -135,18 +148,6 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.Messaging/GetMessage: interceptors have not return Message"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -215,8 +216,21 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 	return http.MethodGet, "/v1/messages/{message_id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &GetMessageRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &GetMessageRequest{}
 		if r.Method == http.MethodGet {
 			if v := r.URL.Query().Get("revision"); v != "" {
 				c, err := strconv.ParseInt(v, 10, 64)
@@ -269,18 +283,6 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.Messaging/GetMessage: interceptors have not return Message"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -344,8 +346,21 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &UpdateMessageRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &UpdateMessageRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -407,18 +422,6 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.Messaging/UpdateMessage: interceptors have not return Message"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -487,8 +490,21 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 	return http.MethodPut, "/v1/messages/{message_id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &UpdateMessageRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &UpdateMessageRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -554,18 +570,6 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 			return
 		}
 
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
-
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
 			buf, err := proto.Marshal(ret)
@@ -628,8 +632,21 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &SubFieldMessageRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &SubFieldMessageRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -691,18 +708,6 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.Messaging/SubFieldMessage: interceptors have not return Message"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
@@ -771,8 +776,21 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 	return http.MethodPost, "/v1/messages/{message_id}/{sub.subfield}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		arg := &SubFieldMessageRequest{}
 		contentType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+
+		accepts := strings.Split(r.Header.Get("Accept"), ",")
+		accept := accepts[0]
+		if accept == "*/*" || accept == "" {
+			if contentType != "" {
+				accept = contentType
+			} else {
+				accept = "application/json"
+			}
+		}
+
+		w.Header().Set("Content-Type", accept)
+
+		arg := &SubFieldMessageRequest{}
 		if r.Method != http.MethodGet {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -839,18 +857,6 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 			cb(ctx, w, r, arg, nil, fmt.Errorf("/httprule.Messaging/SubFieldMessage: interceptors have not return Message"))
 			return
 		}
-
-		accepts := strings.Split(r.Header.Get("Accept"), ",")
-		accept := accepts[0]
-		if accept == "*/*" || accept == "" {
-			if contentType != "" {
-				accept = contentType
-			} else {
-				accept = "application/json"
-			}
-		}
-
-		w.Header().Set("Content-Type", accept)
 
 		switch accept {
 		case "application/protobuf", "application/x-protobuf":
