@@ -31,7 +31,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 		ContentType string
 		Resp        proto.Message
 	}
-	var tests = []struct {
+	tests := []struct {
 		name         string
 		reqFunc      func() (*http.Request, error)
 		service      GreeterHTTPService
@@ -377,7 +377,6 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 					if err := proto.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
 					}
-					fmt.Println(resp)
 				case "application/json":
 					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
 						t.Fatal(err)
