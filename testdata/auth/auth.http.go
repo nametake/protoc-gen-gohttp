@@ -12,6 +12,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	protojson "google.golang.org/protobuf/encoding/protojson"
 	io "io"
 	ioutil "io/ioutil"
 	mime "mime"
@@ -53,11 +54,11 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 						return
 					}
 				case "application/json":
-					m := jsonpb.Marshaler{
-						EnumsAsInts:  true,
-						EmitDefaults: true,
+					buf, err := protojson.Marshal(p)
+					if err != nil {
+						return
 					}
-					if err := m.Marshal(w, p); err != nil {
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 						return
 					}
 				default:
@@ -157,11 +158,12 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 				return
 			}
 		case "application/json":
-			m := jsonpb.Marshaler{
-				EnumsAsInts:  true,
-				EmitDefaults: true,
+			buf, err := protojson.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
 			}
-			if err := m.Marshal(w, ret); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}

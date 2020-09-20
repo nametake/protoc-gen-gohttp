@@ -7,11 +7,11 @@ import (
 	bytes "bytes"
 	context "context"
 	fmt "fmt"
-	jsonpb "github.com/golang/protobuf/jsonpb"
-	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	protojson "google.golang.org/protobuf/encoding/protojson"
+	proto "google.golang.org/protobuf/proto"
 	io "io"
 	ioutil "io/ioutil"
 	mime "mime"
@@ -57,11 +57,11 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 						return
 					}
 				case "application/json":
-					m := jsonpb.Marshaler{
-						EnumsAsInts:  true,
-						EmitDefaults: true,
+					buf, err := protojson.Marshal(p)
+					if err != nil {
+						return
 					}
-					if err := m.Marshal(w, p); err != nil {
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 						return
 					}
 				default:
@@ -101,7 +101,7 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 					return
 				}
 			case "application/json":
-				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+				if err := protojson.Unmarshal(body, arg); err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
@@ -161,11 +161,12 @@ func (h *MessagingHTTPConverter) GetMessage(cb func(ctx context.Context, w http.
 				return
 			}
 		case "application/json":
-			m := jsonpb.Marshaler{
-				EnumsAsInts:  true,
-				EmitDefaults: true,
+			buf, err := protojson.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
 			}
-			if err := m.Marshal(w, ret); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
@@ -201,11 +202,11 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 						return
 					}
 				case "application/json":
-					m := jsonpb.Marshaler{
-						EnumsAsInts:  true,
-						EmitDefaults: true,
+					buf, err := protojson.Marshal(p)
+					if err != nil {
+						return
 					}
-					if err := m.Marshal(w, p); err != nil {
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 						return
 					}
 				default:
@@ -296,11 +297,12 @@ func (h *MessagingHTTPConverter) GetMessageHTTPRule(cb func(ctx context.Context,
 				return
 			}
 		case "application/json":
-			m := jsonpb.Marshaler{
-				EnumsAsInts:  true,
-				EmitDefaults: true,
+			buf, err := protojson.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
 			}
-			if err := m.Marshal(w, ret); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
@@ -331,11 +333,11 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 						return
 					}
 				case "application/json":
-					m := jsonpb.Marshaler{
-						EnumsAsInts:  true,
-						EmitDefaults: true,
+					buf, err := protojson.Marshal(p)
+					if err != nil {
+						return
 					}
-					if err := m.Marshal(w, p); err != nil {
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 						return
 					}
 				default:
@@ -375,7 +377,7 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 					return
 				}
 			case "application/json":
-				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+				if err := protojson.Unmarshal(body, arg); err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
@@ -435,11 +437,12 @@ func (h *MessagingHTTPConverter) UpdateMessage(cb func(ctx context.Context, w ht
 				return
 			}
 		case "application/json":
-			m := jsonpb.Marshaler{
-				EnumsAsInts:  true,
-				EmitDefaults: true,
+			buf, err := protojson.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
 			}
-			if err := m.Marshal(w, ret); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
@@ -475,11 +478,11 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 						return
 					}
 				case "application/json":
-					m := jsonpb.Marshaler{
-						EnumsAsInts:  true,
-						EmitDefaults: true,
+					buf, err := protojson.Marshal(p)
+					if err != nil {
+						return
 					}
-					if err := m.Marshal(w, p); err != nil {
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 						return
 					}
 				default:
@@ -519,7 +522,7 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 					return
 				}
 			case "application/json":
-				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+				if err := protojson.Unmarshal(body, arg); err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
@@ -582,11 +585,12 @@ func (h *MessagingHTTPConverter) UpdateMessageHTTPRule(cb func(ctx context.Conte
 				return
 			}
 		case "application/json":
-			m := jsonpb.Marshaler{
-				EnumsAsInts:  true,
-				EmitDefaults: true,
+			buf, err := protojson.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
 			}
-			if err := m.Marshal(w, ret); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
@@ -617,11 +621,11 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 						return
 					}
 				case "application/json":
-					m := jsonpb.Marshaler{
-						EnumsAsInts:  true,
-						EmitDefaults: true,
+					buf, err := protojson.Marshal(p)
+					if err != nil {
+						return
 					}
-					if err := m.Marshal(w, p); err != nil {
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 						return
 					}
 				default:
@@ -661,7 +665,7 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 					return
 				}
 			case "application/json":
-				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+				if err := protojson.Unmarshal(body, arg); err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
@@ -721,11 +725,12 @@ func (h *MessagingHTTPConverter) SubFieldMessage(cb func(ctx context.Context, w 
 				return
 			}
 		case "application/json":
-			m := jsonpb.Marshaler{
-				EnumsAsInts:  true,
-				EmitDefaults: true,
+			buf, err := protojson.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
 			}
-			if err := m.Marshal(w, ret); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
@@ -761,11 +766,11 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 						return
 					}
 				case "application/json":
-					m := jsonpb.Marshaler{
-						EnumsAsInts:  true,
-						EmitDefaults: true,
+					buf, err := protojson.Marshal(p)
+					if err != nil {
+						return
 					}
-					if err := m.Marshal(w, p); err != nil {
+					if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 						return
 					}
 				default:
@@ -805,7 +810,7 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 					return
 				}
 			case "application/json":
-				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+				if err := protojson.Unmarshal(body, arg); err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
@@ -870,11 +875,12 @@ func (h *MessagingHTTPConverter) SubFieldMessageHTTPRule(cb func(ctx context.Con
 				return
 			}
 		case "application/json":
-			m := jsonpb.Marshaler{
-				EnumsAsInts:  true,
-				EmitDefaults: true,
+			buf, err := protojson.Marshal(ret)
+			if err != nil {
+				cb(ctx, w, r, arg, ret, err)
+				return
 			}
-			if err := m.Marshal(w, ret); err != nil {
+			if _, err := io.Copy(w, bytes.NewBuffer(buf)); err != nil {
 				cb(ctx, w, r, arg, ret, err)
 				return
 			}
