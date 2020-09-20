@@ -7,12 +7,11 @@ import (
 	bytes "bytes"
 	context "context"
 	fmt "fmt"
-	jsonpb "github.com/golang/protobuf/jsonpb"
-	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	protojson "google.golang.org/protobuf/encoding/protojson"
+	proto "google.golang.org/protobuf/proto"
 	io "io"
 	ioutil "io/ioutil"
 	mime "mime"
@@ -98,7 +97,7 @@ func (h *TestServiceHTTPConverter) UnaryCall(cb func(ctx context.Context, w http
 					return
 				}
 			case "application/json":
-				if err := jsonpb.Unmarshal(bytes.NewBuffer(body), arg); err != nil {
+				if err := protojson.Unmarshal(body, arg); err != nil {
 					cb(ctx, w, r, nil, nil, err)
 					return
 				}
