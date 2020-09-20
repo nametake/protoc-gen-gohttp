@@ -9,11 +9,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestMessaging_GetMessage(t *testing.T) {
@@ -167,7 +167,7 @@ func TestMessaging_GetMessage(t *testing.T) {
 						t.Fatal(err)
 					}
 				case "application/json":
-					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+					if err := protojson.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
 					}
 				default:
@@ -296,7 +296,7 @@ func TestMessaging_UpdateMessage(t *testing.T) {
 						t.Fatal(err)
 					}
 				case "application/json":
-					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+					if err := protojson.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
 					}
 				default:
@@ -437,7 +437,7 @@ func TestMessaging_CreateMessage(t *testing.T) {
 						t.Fatal(err)
 					}
 				case "application/json":
-					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+					if err := protojson.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
 					}
 				default:

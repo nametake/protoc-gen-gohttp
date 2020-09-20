@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 // EchoGreeterServer has implemented the GreeterServer interface that created from the service in proto file.

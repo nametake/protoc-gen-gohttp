@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestAllPattern_AllPattern(t *testing.T) {
@@ -277,7 +277,7 @@ func TestAllPattern_AllPattern(t *testing.T) {
 						t.Fatal(err)
 					}
 				case "application/json":
-					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+					if err := protojson.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
 					}
 				default:
