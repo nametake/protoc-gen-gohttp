@@ -21,7 +21,7 @@ jobs:
             rm protoc.zip protoc -rf
       - run:
           name: install protoc-gen-go
-          command: go get -u github.com/golang/protobuf/protoc-gen-go
+          command: go get -u google.golang.org/protobuf/cmd/protoc-gen-go
           environment:
             GO111MODULE: 'off'
       - run: |

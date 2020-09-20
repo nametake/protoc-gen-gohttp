@@ -10,13 +10,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type ErrorService struct{}
@@ -378,7 +378,7 @@ func TestEchoGreeterServer_SayHello(t *testing.T) {
 						t.Fatal(err)
 					}
 				case "application/json":
-					if err := jsonpb.Unmarshal(rec.Body, resp); err != nil {
+					if err := protojson.Unmarshal(rec.Body.Bytes(), resp); err != nil {
 						t.Fatal(err)
 					}
 				default:

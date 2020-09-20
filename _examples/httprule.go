@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-var _ MessagingServer = (*Messaging)(nil)
+var _ MessagingHTTPService = (*Messaging)(nil)
 
 type Messaging struct{}
 

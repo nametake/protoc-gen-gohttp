@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-var _ AllPatternServer = (*AllPattern)(nil)
+var _ AllPatternHTTPService = (*AllPattern)(nil)
 
 type AllPattern struct{}
 
