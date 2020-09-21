@@ -9,7 +9,7 @@ func main() {
 		for _, f := range p.Files {
 			if f.Generate {
 				if _, err := GenerateFile(p, f); err != nil {
-					return nil
+					return err
 				}
 			}
 		}
