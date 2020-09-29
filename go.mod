@@ -1,4 +1,4 @@
-module github.com/nametake/protoc-gen-gohttp/v2
+module github.com/nametake/protoc-gen-gohttp
 
 require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
