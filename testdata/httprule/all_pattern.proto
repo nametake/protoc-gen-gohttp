@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package httprule;
 
-option go_package = "httprule;httprulepb";
+option go_package = "./httprule/;httprulepb";
 
 import "google/api/annotations.proto";
 

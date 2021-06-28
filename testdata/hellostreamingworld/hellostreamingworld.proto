@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hellostreamingworld;
 
-option go_package = "hellostreamingworld;hellostreamingworldpb";
+option go_package = "/hellostreamingworld/;hellostreamingworldpb";
 
 service MultiGreeter {
   rpc sayHello (HelloRequest) returns (stream HelloReply) {}
