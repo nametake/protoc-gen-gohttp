@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package grpc.testing;
 
-option go_package = "auth;testingpb";
+option go_package = "./auth/;testingpb";
 
 message Request {
   bool fill_username = 4;
