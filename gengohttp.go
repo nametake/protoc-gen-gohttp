@@ -23,11 +23,21 @@ var (
 )
 
 var (
-	protoPackage     = protogen.GoImportPath("google.golang.org/protobuf/proto")
-	protojsonPackage = protogen.GoImportPath("google.golang.org/protobuf/encoding/protojson")
-	grpcPackage      = protogen.GoImportPath("google.golang.org/grpc")
-	codesPackage     = protogen.GoImportPath("google.golang.org/grpc/codes")
-	statusPackage    = protogen.GoImportPath("google.golang.org/grpc/status")
+	protoPackage           = protogen.GoImportPath("google.golang.org/protobuf/proto")
+	protojsonPackage       = protogen.GoImportPath("google.golang.org/protobuf/encoding/protojson")
+	grpcPackage            = protogen.GoImportPath("google.golang.org/grpc")
+	codesPackage           = protogen.GoImportPath("google.golang.org/grpc/codes")
+	statusPackage          = protogen.GoImportPath("google.golang.org/grpc/status")
+	anypbPackage           = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	apipbPackage           = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	durationpbPackage      = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	emptypbPackage         = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	fieldmaskpbPackage     = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	sourcecontextpbPackage = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	structpbPackage        = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	timestamppbPackage     = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	typepbPackage          = protogen.GoImportPath("google.golang.org/protobuf/types/known")
+	wrapperspbPackage      = protogen.GoImportPath("google.golang.org/protobuf/types/known")
 )
 
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) (*protogen.GeneratedFile, error) {
