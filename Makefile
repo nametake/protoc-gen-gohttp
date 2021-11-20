@@ -23,6 +23,8 @@ run_examples:
 
 curl_google_api:
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > _examples/google/api/annotations.proto
-	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > _examples/google/api/http.proto
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > testdata/google/api/annotations.proto
+	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > _examples/google/api/http.proto
 	@curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > testdata/google/api/http.proto
+	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto> _examples/google/protobuf/any.proto
+	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto> testdata/google/protobuf/any.proto
