@@ -12,12 +12,12 @@ import (
 	status "google.golang.org/grpc/status"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	ioutil "io/ioutil"
 	mime "mime"
 	http "net/http"
 	strings "strings"
-	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 // KnownTypesServiceHTTPService is the server API for KnownTypesService service.
