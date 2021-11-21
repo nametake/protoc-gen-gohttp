@@ -23,12 +23,21 @@ var (
 )
 
 var (
-	protoPackage     = protogen.GoImportPath("google.golang.org/protobuf/proto")
-	protojsonPackage = protogen.GoImportPath("google.golang.org/protobuf/encoding/protojson")
-	grpcPackage      = protogen.GoImportPath("google.golang.org/grpc")
-	codesPackage     = protogen.GoImportPath("google.golang.org/grpc/codes")
-	statusPackage    = protogen.GoImportPath("google.golang.org/grpc/status")
-	anypbPackage     = protogen.GoImportPath("google.golang.org/protobuf/types/known/anypb")
+	protoPackage           = protogen.GoImportPath("google.golang.org/protobuf/proto")
+	protojsonPackage       = protogen.GoImportPath("google.golang.org/protobuf/encoding/protojson")
+	grpcPackage            = protogen.GoImportPath("google.golang.org/grpc")
+	codesPackage           = protogen.GoImportPath("google.golang.org/grpc/codes")
+	statusPackage          = protogen.GoImportPath("google.golang.org/grpc/status")
+	anypbPackage           = protogen.GoImportPath("google.golang.org/protobuf/types/known/anypb")
+	apipbPackage           = protogen.GoImportPath("google.golang.org/protobuf/types/known/apipb")
+	durationpbPackage      = protogen.GoImportPath("google.golang.org/protobuf/types/known/durationpb")
+	emptypbPackage         = protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb")
+	fieldmaskpbPackage     = protogen.GoImportPath("google.golang.org/protobuf/types/known/fieldmaskpb")
+	sourcecontextpbPackage = protogen.GoImportPath("google.golang.org/protobuf/types/known/sourcecontextpb")
+	structpbPackage        = protogen.GoImportPath("google.golang.org/protobuf/types/known/structpb")
+	timestamppbPackage     = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb")
+	typepbPackage          = protogen.GoImportPath("google.golang.org/protobuf/types/known/typepb")
+	wrapperspbPackage      = protogen.GoImportPath("google.golang.org/protobuf/types/known/wrapperspb")
 )
 
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) (*protogen.GeneratedFile, error) {
@@ -695,6 +704,24 @@ func genMessageName(msg *protogen.Message) protogen.GoIdent {
 	switch msg.Location.SourceFile {
 	case "google/protobuf/any.proto":
 		return anypbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/api.proto":
+		return apipbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/duration.proto":
+		return durationpbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/empty.proto":
+		return emptypbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/fieldmask.proto":
+		return fieldmaskpbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/sourcecontext.proto":
+		return sourcecontextpbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/struct.proto":
+		return statusPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/timestamp.proto":
+		return timestamppbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/type.proto":
+		return typepbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/wrappers.proto":
+		return wrapperspbPackage.Ident(msg.GoIdent.GoName)
 	default:
 		return msg.GoIdent
 	}
