@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package knowntypes;
+
+option go_package = "./knowntypes/;knowntypespb";
+
+import "google/protobuf/any.proto";
+
+service KnownTypesService {
+  rpc Any(google.protobuf.Any) returns (google.protobuf.Any);
+}
+
