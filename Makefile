@@ -33,8 +33,8 @@ curl_google_option_proto:
 	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto> testdata/google/protobuf/empty.proto
 	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/field_mask.proto> _examples/google/protobuf/field_mask.proto
 	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/field_mask.proto> testdata/google/protobuf/field_mask.proto
-	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/source_context.proto> _examples/google/protobuf/sourcecontext.proto
-	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/source_context.proto> testdata/google/protobuf/sourcecontext.proto
+	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/source_context.proto> _examples/google/protobuf/source_context.proto
+	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/source_context.proto> testdata/google/protobuf/source_context.proto
 	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/struct.proto> _examples/google/protobuf/struct.proto
 	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/struct.proto> testdata/google/protobuf/struct.proto
 	@curl https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto> _examples/google/protobuf/timestamp.proto
