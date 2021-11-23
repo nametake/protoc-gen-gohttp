@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package knowntypes;
+
+option go_package = "./knowntypes/;knowntypespb";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/api.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/source_context.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/type.proto";
+import "google/protobuf/wrappers.proto";
+
+service KnownTypesService {
+  rpc Any(google.protobuf.Any) returns (google.protobuf.Any);
+  rpc Api(google.protobuf.Api) returns (google.protobuf.Api);
+  rpc Duration(google.protobuf.Duration) returns (google.protobuf.Duration);
+  rpc Empty(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc FieldMask(google.protobuf.FieldMask) returns (google.protobuf.FieldMask);
+  rpc SourceContext(google.protobuf.SourceContext) returns (google.protobuf.SourceContext);
+  rpc Struct(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc Timestamp(google.protobuf.Timestamp) returns (google.protobuf.Timestamp);
+  rpc Type(google.protobuf.Type) returns (google.protobuf.Type);
+  rpc Wrappers(google.protobuf.BoolValue) returns (google.protobuf.BoolValue);
+}
+

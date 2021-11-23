@@ -23,11 +23,21 @@ var (
 )
 
 var (
-	protoPackage     = protogen.GoImportPath("google.golang.org/protobuf/proto")
-	protojsonPackage = protogen.GoImportPath("google.golang.org/protobuf/encoding/protojson")
-	grpcPackage      = protogen.GoImportPath("google.golang.org/grpc")
-	codesPackage     = protogen.GoImportPath("google.golang.org/grpc/codes")
-	statusPackage    = protogen.GoImportPath("google.golang.org/grpc/status")
+	protoPackage           = protogen.GoImportPath("google.golang.org/protobuf/proto")
+	protojsonPackage       = protogen.GoImportPath("google.golang.org/protobuf/encoding/protojson")
+	grpcPackage            = protogen.GoImportPath("google.golang.org/grpc")
+	codesPackage           = protogen.GoImportPath("google.golang.org/grpc/codes")
+	statusPackage          = protogen.GoImportPath("google.golang.org/grpc/status")
+	anypbPackage           = protogen.GoImportPath("google.golang.org/protobuf/types/known/anypb")
+	apipbPackage           = protogen.GoImportPath("google.golang.org/protobuf/types/known/apipb")
+	durationpbPackage      = protogen.GoImportPath("google.golang.org/protobuf/types/known/durationpb")
+	emptypbPackage         = protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb")
+	fieldmaskpbPackage     = protogen.GoImportPath("google.golang.org/protobuf/types/known/fieldmaskpb")
+	sourcecontextpbPackage = protogen.GoImportPath("google.golang.org/protobuf/types/known/sourcecontextpb")
+	structpbPackage        = protogen.GoImportPath("google.golang.org/protobuf/types/known/structpb")
+	timestamppbPackage     = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb")
+	typepbPackage          = protogen.GoImportPath("google.golang.org/protobuf/types/known/typepb")
+	wrapperspbPackage      = protogen.GoImportPath("google.golang.org/protobuf/types/known/wrapperspb")
 )
 
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) (*protogen.GeneratedFile, error) {
@@ -138,7 +148,7 @@ func genServiceInterface(g *protogen.GeneratedFile, srv *protogen.Service) {
 		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
 			continue
 		}
-		g.P(method.Comments.Leading, method.GoName, "(", contextPackage.Ident("Context"), ", *", method.Input.GoIdent.GoName, ") (*", method.Output.GoIdent.GoName, ", error)")
+		g.P(method.Comments.Leading, method.GoName, "(", contextPackage.Ident("Context"), ", *", genMessageName(method.Input), ") (*", genMessageName(method.Output), ", error)")
 	}
 	g.P("}")
 }
@@ -183,7 +193,7 @@ func genMethod(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("")
 	g.P("		w.Header().Set(\"Content-Type\", accept)")
 	g.P("")
-	g.P("		arg := &", method.Input.GoIdent.GoName, "{}")
+	g.P("		arg := &", genMessageName(method.Input), "{}")
 	g.P("		if r.Method != ", httpPackage.Ident("MethodGet"), " {")
 	g.P("			body, err := ", ioutilPackage.Ident("ReadAll"), "(r.Body)")
 	g.P("			if err != nil {")
@@ -231,7 +241,7 @@ func genMethod(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("		}")
 	g.P("")
 	g.P("		handler := func(c ", contextPackage.Ident("Context"), ", req interface{}) (interface{}, error) {")
-	g.P("			return h.srv.", method.GoName, "(c, req.(*", method.Input.GoIdent.GoName, "))")
+	g.P("			return h.srv.", method.GoName, "(c, req.(*", genMessageName(method.Input), "))")
 	g.P("		}")
 	g.P("")
 	g.P("		iret, err := chained(ctx, arg, info, handler)")
@@ -240,9 +250,9 @@ func genMethod(g *protogen.GeneratedFile, method *protogen.Method) {
 	g.P("			return")
 	g.P("		}")
 	g.P("")
-	g.P("		ret, ok := iret.(*", method.Output.GoIdent.GoName, ")")
+	g.P("		ret, ok := iret.(*", genMessageName(method.Output), ")")
 	g.P("		if !ok {")
-	g.P("			cb(ctx, w, r, arg, nil, fmt.Errorf(\"/", method.Desc.ParentFile().Package(), ".", method.Parent.GoName, "/", method.GoName, ": interceptors have not return ", method.Output.GoIdent.GoName, "\"))")
+	g.P("			cb(ctx, w, r, arg, nil, fmt.Errorf(\"/", method.Desc.ParentFile().Package(), ".", method.Parent.GoName, "/", method.GoName, ": interceptors have not return ", genMessageName(method.Output), "\"))")
 	g.P("			return")
 	g.P("		}")
 	g.P("")
@@ -354,7 +364,7 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 	g.P("")
 	g.P("		w.Header().Set(\"Content-Type\", accept)")
 	g.P("")
-	g.P("		arg := &", method.Input.GoIdent.GoName, "{}")
+	g.P("		arg := &", genMessageName(method.Input), "{}")
 	if _, ok := httpRule.GetPattern().(*annotations.HttpRule_Get); ok {
 		g.P("if r.Method == http.MethodGet {")
 		for _, p := range queryParams {
@@ -430,7 +440,7 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 	g.P("		}")
 	g.P("")
 	g.P("		handler := func(c ", contextPackage.Ident("Context"), ", req interface{}) (interface{}, error) {")
-	g.P("			return h.srv.", method.GoName, "(c, req.(*", method.Input.GoIdent.GoName, "))")
+	g.P("			return h.srv.", method.GoName, "(c, req.(*", genMessageName(method.Input), "))")
 	g.P("		}")
 	g.P("")
 	g.P("		iret, err := chained(ctx, arg, info, handler)")
@@ -439,9 +449,9 @@ func genMethodHTTPRule(g *protogen.GeneratedFile, method *protogen.Method) error
 	g.P("			return")
 	g.P("		}")
 	g.P("")
-	g.P("		ret, ok := iret.(*", method.Output.GoIdent.GoName, ")")
+	g.P("		ret, ok := iret.(*", genMessageName(method.Output), ")")
 	g.P("		if !ok {")
-	g.P("			cb(ctx, w, r, arg, nil, fmt.Errorf(\"/", method.Desc.ParentFile().Package(), ".", method.Parent.GoName, "/", method.GoName, ": interceptors have not return ", method.Output.GoIdent.GoName, "\"))")
+	g.P("			cb(ctx, w, r, arg, nil, fmt.Errorf(\"/", method.Desc.ParentFile().Package(), ".", method.Parent.GoName, "/", method.GoName, ": interceptors have not return ", genMessageName(method.Output), "\"))")
 	g.P("			return")
 	g.P("		}")
 	g.P("")
@@ -687,5 +697,32 @@ func genQueryString(g *protogen.GeneratedFile, queryParam *queryParam) {
 			g.P("	arg.", queryParam.GoName, " = c")
 			g.P("}")
 		}
+	}
+}
+
+func genMessageName(msg *protogen.Message) protogen.GoIdent {
+	switch msg.Location.SourceFile {
+	case "google/protobuf/any.proto":
+		return anypbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/api.proto":
+		return apipbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/duration.proto":
+		return durationpbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/empty.proto":
+		return emptypbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/field_mask.proto":
+		return fieldmaskpbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/source_context.proto":
+		return sourcecontextpbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/struct.proto":
+		return statusPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/timestamp.proto":
+		return timestamppbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/type.proto":
+		return typepbPackage.Ident(msg.GoIdent.GoName)
+	case "google/protobuf/wrappers.proto":
+		return wrapperspbPackage.Ident(msg.GoIdent.GoName)
+	default:
+		return msg.GoIdent
 	}
 }

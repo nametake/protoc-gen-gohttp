@@ -10,7 +10,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          version: 1.13
+          version: 1.17
       - name: Checkout
         uses: actions/checkout@master
       - name: Setup protoc
