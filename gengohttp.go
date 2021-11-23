@@ -710,9 +710,9 @@ func genMessageName(msg *protogen.Message) protogen.GoIdent {
 		return durationpbPackage.Ident(msg.GoIdent.GoName)
 	case "google/protobuf/empty.proto":
 		return emptypbPackage.Ident(msg.GoIdent.GoName)
-	case "google/protobuf/fieldmask.proto":
+	case "google/protobuf/field_mask.proto":
 		return fieldmaskpbPackage.Ident(msg.GoIdent.GoName)
-	case "google/protobuf/sourcecontext.proto":
+	case "google/protobuf/source_context.proto":
 		return sourcecontextpbPackage.Ident(msg.GoIdent.GoName)
 	case "google/protobuf/struct.proto":
 		return statusPackage.Ident(msg.GoIdent.GoName)
